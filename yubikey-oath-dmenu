@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-VERSION=0.1.1
+VERSION=0.2.0
 PROGRAM=$(basename "$0")
 TMPFILE=$(mktemp -t yubikey-oath-dmenu.XXXXXX)
 ERRFILE=$(mktemp -t yubikey-oath-dmenu.XXXXXX)
@@ -109,7 +109,7 @@ if ! ykman oath list >"${TMPFILE}" 2>"${ERRFILE}"; then
 fi
 
 if query=$(dmenu -p 'Credential:' -i < "${TMPFILE}"); then
-  if code=$(ykman oath code "${query}" 2>"${ERRFILE}" | grep -oE '[0-9]+$' -m 1)
+  if code=$(ykman oath code --single "${query}" 2>"${ERRFILE}")
   then
     if $typeit; then
       xdotool type "$code"
