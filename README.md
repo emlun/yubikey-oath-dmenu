@@ -22,17 +22,19 @@ Dependencies
 ---
 
 - [dmenu][]
-- `xclip`
+- [xclip][]
 - [YubiKey Manager CLI][ykman], version 0.5.0 or later, installed in `$PATH` as
   `ykman`
 
 Optional dependencies:
 
 - [libnotify][]: For the `--notify` option, which uses `notify-send`
-- `xdotool`: For the `--type` option
+- [xdotool][]: For the `--type` option
 
 
 [dmenu]: https://tools.suckless.org/dmenu/
 [libnotify]: https://developer.gnome.org/libnotify/
+[xclip]: https://linux.die.net/man/1/xclip
+[xdotool]: http://www.semicomplete.com/projects/xdotool/
 [ykman]: https://github.com/Yubico/yubikey-manager
 [YubiKey]: https://www.yubico.com/products/yubikey-hardware/
