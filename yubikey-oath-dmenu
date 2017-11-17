@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-VERSION=0.2.0
+VERSION=0.2.1-dev
 PROGRAM=$(basename "$0")
 TMPFILE=$(mktemp -t yubikey-oath-dmenu.XXXXXX)
 ERRFILE=$(mktemp -t yubikey-oath-dmenu.XXXXXX)
@@ -89,7 +89,7 @@ fi
 
 
 notify() {
-  if $notify_enabled && hash notify-send 2>/dev/null; then
+  if $notify_enabled; then
     notify-send --app-name="$PROGRAM" "$@"
   fi
 }
