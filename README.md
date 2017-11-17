@@ -3,6 +3,10 @@ yubikey-oath-dmenu
 
 [dmenu][] interface for getting OATH codes from a [YubiKey][]
 
+This program lets you pick an OATH credential from your YubiKey using [dmenu][],
+and copies the corresponding OTP to the clipboard using [xclip][].
+Alternatively, it can "type" the OTP using [xdotool][].
+
 
 Usage
 ---
