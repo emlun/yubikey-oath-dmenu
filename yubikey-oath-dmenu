@@ -1,0 +1,133 @@
+#!/bin/bash
+# yubikey-oath-dmenu - dmenu interface for getting OATH codes from a YubiKey
+# Copyright (C) 2017  Emil Lundberg <emil@emlun.se>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+VERSION=0.1.0
+PROGRAM=$(basename "$0")
+TMPFILE=$(mktemp -t yubikey-oath-dmenu.XXXXXX)
+ERRFILE=$(mktemp -t yubikey-oath-dmenu.XXXXXX)
+
+cleanup() {
+  rm -f "${TMPFILE}" "${ERRFILE}"
+}
+
+usage() {
+  cat << EOF
+Usage: $PROGRAM [OPTIONS]
+
+Select an OATH credential on your YubiKey using dmenu, then copy the
+corresponding OTP to the clipboard using xclip.
+
+Note that your YubiKey may flash to ask you to touch it before generating the
+code, and this program will give you no other indication of that.
+
+Options:
+  --clipboard CLIPBOARD   Passed through as -selection option to xclip
+  -h, --help              Show this help and exit
+  --notify                Provide feedback via notify-send
+  --type                  Type code using xdotool instead of copying to
+                          clipboard
+  -v, --version           Print version information and exit
+EOF
+}
+
+trap cleanup EXIT
+
+clipboard=''
+notify_enabled=false
+typeit=false
+
+opts="$(getopt -o 'hv' -l 'clipboard:,help,notify,type,version' -n "$PROGRAM" -- "$@")"
+if [[ $? -ne 0 ]]; then
+  usage >&2
+  exit 1
+fi
+eval set -- "$opts"
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --clipboard)
+      shift
+      clipboard="$1"
+      ;;
+
+    -h|--help)
+      usage
+      exit 0
+      ;;
+
+    --notify)
+      notify_enabled=true
+      ;;
+
+    --type)
+      typeit=true
+      ;;
+
+    -v|--version)
+      echo "${PROGRAM} version ${VERSION}"
+      exit 0
+  esac
+  shift
+done
+if [[ $# -gt 1 ]]; then
+  usage
+  exit 1
+fi
+
+
+notify() {
+  if $notify_enabled && hash notify-send 2>/dev/null; then
+    notify-send --app-name="$PROGRAM" "$@"
+  fi
+}
+notify-err() {
+  notify --urgency=critical --expire-time=5000 "$@"
+}
+notify-msg() {
+  notify --urgency=normal --expire-time=3000 "$@"
+}
+
+if ! ykman oath list >"${TMPFILE}" 2>"${ERRFILE}"; then
+  cat "${TMPFILE}"
+  cat "${ERRFILE}" >&2
+  notify-err 'Failed to list credentials' \
+    "$(grep -vE '^Usage:|^$' "${ERRFILE}")"
+  exit 1
+fi
+
+if query=$(dmenu -p 'Credential:' -i < "${TMPFILE}"); then
+  if code=$(ykman oath code "${query}" 2>"${ERRFILE}" | grep -oE '[0-9]+$' -m 1)
+  then
+    if $typeit; then
+      xdotool type "$code"
+    else
+      if [[ "${clipboard}" -ne '' ]]; then
+        echo -n "$code" | xclip -selection "${clipboard}"
+      else
+        echo -n "$code" | xclip
+      fi
+      echo "OTP copied to clipboard: ${query}"
+      notify-msg "OTP copied to clipboard: ${query}"
+    fi
+  else
+    cat "${ERRFILE}" >&2
+    notify-err "Failed to get code from YubiKey" \
+      "$(grep -vE '^Usage:|^$' "${ERRFILE}")"
+    exit 1
+  fi
+else
+  echo "Aborted by user"
+fi
