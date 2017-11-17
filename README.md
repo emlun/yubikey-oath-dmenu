@@ -36,6 +36,15 @@ Optional dependencies:
 - [xdotool][]: For the `--type` option
 
 
+Installation
+---
+
+- **Arch Linux**: [AUR package][aur]
+- **Others**: Place `yubikey-oath-dmenu` somewhere on your `$PATH`.
+  `/usr/local/bin/` probably works, for example.
+
+
+[aur]: https://aur.archlinux.org/packages/yubikey-oath-dmenu
 [dmenu]: https://tools.suckless.org/dmenu/
 [libnotify]: https://developer.gnome.org/libnotify/
 [xclip]: https://linux.die.net/man/1/xclip
