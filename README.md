@@ -23,7 +23,7 @@ Dependencies
 
 - [dmenu][]
 - `xclip`
-- [YubiKey Manager CLI][ykman], version 0.4.1 or later, installed in `$PATH` as
+- [YubiKey Manager CLI][ykman], version 0.5.0 or later, installed in `$PATH` as
   `ykman`
 
 Optional dependencies:
