@@ -16,7 +16,13 @@ Invoke with `--help` to see the command line options.
     $ yubikey-oath-dmenu --help
 
 Recommended usage is to map your preferred command line to a shortcut in your
-window manager or desktop environment.
+window manager or desktop environment. For example, you could bind it to
+<kbd>Super</kbd>+<kbd>o</kbd> and <kbd>Super</kbd>+<kbd>Shift</kbd>+<kbd>o</kbd>
+in [i3wm][] like this:
+
+    # Grab OTPs from ykman oath
+    bindsym $mod+o exec yubikey-oath-dmenu --notify --clipboard clipboard
+    bindsym $mod+Shift+o exec yubikey-oath-dmenu --notify --type
 
 Note that your YubiKey may flash to ask you to touch it before generating the
 code, and this program will give you no other indication of that.
@@ -46,6 +52,7 @@ Installation
 
 [aur]: https://aur.archlinux.org/packages/yubikey-oath-dmenu
 [dmenu]: https://tools.suckless.org/dmenu/
+[i3wm]: https://i3wm.org/docs/userguide.html
 [libnotify]: https://developer.gnome.org/libnotify/
 [xclip]: https://linux.die.net/man/1/xclip
 [xdotool]: http://www.semicomplete.com/projects/xdotool/
