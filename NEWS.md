@@ -1,3 +1,7 @@
+- Version 0.3.0 - released 2018-02-19
+  - Complete rewrite in Python instead of shell; CLI should be mostly the same
+  - Now supports multiple YubiKeys as long as no credential ID exists on both
+
 - Version 0.2.0 - released 2017-11-17
   - Now requires `ykman>=0.5.0` and uses the `--single` option
 
