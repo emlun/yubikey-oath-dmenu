@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/usr/bin/python3
 # yubikey-oath-dmenu - dmenu interface for getting OATH codes from a YubiKey
-# Copyright (C) 2017  Emil Lundberg <emil@emlun.se>
+# Copyright (C) 2017-2018  Emil Lundberg <emil@emlun.se>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,119 +15,115 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-VERSION=0.2.0
-PROGRAM=$(basename "$0")
-TMPFILE=$(mktemp -t yubikey-oath-dmenu.XXXXXX)
-ERRFILE=$(mktemp -t yubikey-oath-dmenu.XXXXXX)
+import click
+import subprocess
+import ykman.driver_ccid
+import ykman.oath
 
-cleanup() {
-  rm -f "${TMPFILE}" "${ERRFILE}"
-}
+VERSION = '0.3.0'
 
-usage() {
-  cat << EOF
-Usage: $PROGRAM [OPTIONS]
-
-Select an OATH credential on your YubiKey using dmenu, then copy the
-corresponding OTP to the clipboard using xclip.
-
-Note that your YubiKey may flash to ask you to touch it before generating the
-code, and this program will give you no other indication of that.
-
-Options:
-  --clipboard CLIPBOARD   Passed through as -selection option to xclip
-  -h, --help              Show this help and exit
-  --notify                Provide feedback via notify-send
-  --type                  Type code using xdotool instead of copying to
-                          clipboard
-  -v, --version           Print version information and exit
-EOF
-}
-
-trap cleanup EXIT
-
-clipboard=''
-notify_enabled=false
-typeit=false
-
-opts="$(getopt -o 'hv' -l 'clipboard:,help,notify,type,version' -n "$PROGRAM" -- "$@")"
-if [[ $? -ne 0 ]]; then
-  usage >&2
-  exit 1
-fi
-eval set -- "$opts"
-while [[ $# -gt 0 ]]; do
-  case $1 in
-    --clipboard)
-      shift
-      clipboard="$1"
-      ;;
-
-    -h|--help)
-      usage
-      exit 0
-      ;;
-
-    --notify)
-      notify_enabled=true
-      ;;
-
-    --type)
-      typeit=true
-      ;;
-
-    -v|--version)
-      echo "${PROGRAM} version ${VERSION}"
-      exit 0
-  esac
-  shift
-done
-if [[ $# -gt 1 ]]; then
-  usage
-  exit 1
-fi
+notify_enabled = False
 
 
-notify() {
-  if $notify_enabled && hash notify-send 2>/dev/null; then
-    notify-send --app-name="$PROGRAM" "$@"
-  fi
-}
-notify-err() {
-  notify --urgency=critical --expire-time=5000 "$@"
-}
-notify-msg() {
-  notify --urgency=normal --expire-time=3000 "$@"
-}
+@click.pass_context
+def notify(ctx, *args, expire_time=3000, urgency='normal'):
+    if notify_enabled:
+        subprocess.run([
+            'notify-send',
+            '--app-name=%s' % ctx.info_name,
+            '--expire-time=%d' % expire_time,
+            '--urgency=%s' % urgency,
+            *args
+        ])
 
-if ! ykman oath list >"${TMPFILE}" 2>"${ERRFILE}"; then
-  cat "${TMPFILE}"
-  cat "${ERRFILE}" >&2
-  notify-err 'Failed to list credentials' \
-    "$(grep -vE '^Usage:|^$' "${ERRFILE}")"
-  exit 1
-fi
 
-if query=$(dmenu -p 'Credential:' -i < "${TMPFILE}"); then
-  if code=$(ykman oath code --single "${query}" 2>"${ERRFILE}")
-  then
-    if $typeit; then
-      xdotool type "$code"
-    else
-      if [[ -n "${clipboard}" ]]; then
-        echo -n "$code" | xclip -selection "${clipboard}"
-      else
-        echo -n "$code" | xclip
-      fi
-      echo "OTP copied to clipboard: ${query}"
-      notify-msg "OTP copied to clipboard: ${query}"
-    fi
-  else
-    cat "${ERRFILE}" >&2
-    notify-err "Failed to get code from YubiKey" \
-      "$(grep -vE '^Usage:|^$' "${ERRFILE}")"
-    exit 1
-  fi
-else
-  echo "Aborted by user"
-fi
+def notify_err(*args, **kwargs):
+    notify(*args, expire_time=5000, urgency='critical', **kwargs)
+
+
+@click.command()
+@click.pass_context
+@click.option('--clipboard', metavar='CLIPBOARD',
+              help='Passed through as -selection option to xclip')
+@click.help_option('-h', '--help')
+@click.option('--notify', 'notify_enable', default=False, is_flag=True,
+              help='Provide feedback via notify-send')
+@click.option('--type', 'typeit', default=False, is_flag=True,
+              help='Type code using xdotool instead of copying to clipboard')
+@click.version_option(version=VERSION)
+def cli(ctx, clipboard, notify_enable, typeit):
+    '''
+    Select an OATH credential on your YubiKey using dmenu, then copy the
+    corresponding OTP to the clipboard using xclip.
+
+    Note that your YubiKey may flash to ask you to touch it before generating
+    the code, and this program will give you no other indication of that.
+    '''
+    global notify_enabled
+    notify_enabled = notify_enable
+
+    controllers = {i: ykman.oath.OathController(driver)
+                   for i, driver in enumerate(
+                       ykman.driver_ccid.open_devices())
+                   }
+
+    credentials = {
+        k: {cred.printable_key: cred
+            for cred in ctrl.list()
+            }
+        for k, ctrl in controllers.items()
+    }
+
+    credential_ids = [cred_id
+                      for creds in credentials.values()
+                      for cred_id in creds.keys()
+                      ]
+
+    if len(credential_ids) != len(set(credential_ids)):
+        dups = [id for id in credential_ids if credential_ids.count(id) > 1]
+        msg = ('Error: Credential ID present on multiple YubiKeys:\n'
+               + '\n'.join(set(dups)))
+        notify_err(msg)
+        ctx.fail(msg)
+
+    credential_id_to_controller_idx = {
+        cred_id: k
+        for k, creds in credentials.items()
+        for cred_id in creds.keys()
+    }
+
+    dmenu_proc = subprocess.Popen(
+        ['dmenu', '-p', 'Credential:', '-i'],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        encoding='utf-8'
+    )
+    (selected_cred_id, _) = dmenu_proc.communicate('\n'.join(credential_ids))
+
+    if dmenu_proc.returncode == 0:
+        selected_cred_id = selected_cred_id.strip()
+
+        ctrl_idx = credential_id_to_controller_idx[selected_cred_id]
+        ctrl = controllers[ctrl_idx]
+
+        code = ctrl.calculate(credentials[ctrl_idx][selected_cred_id]).value
+
+        if typeit:
+            subprocess.run(['xdotool', 'type', code])
+        else:
+            xclip_proc = subprocess.Popen(
+                ['xclip', '-selection', clipboard] if clipboard else ['xclip'],
+                stdin=subprocess.PIPE,
+                encoding='utf-8'
+            )
+            xclip_proc.communicate(code)
+            msg = 'OTP copied to clipboard: %s' % selected_cred_id
+            click.echo(msg)
+            notify(msg)
+
+    else:
+        click.echo('Aborted by user.')
+
+
+if __name__ == '__main__':
+    cli()
