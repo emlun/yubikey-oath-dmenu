@@ -31,6 +31,7 @@ code, and this program will give you no other indication of that.
 Dependencies
 ---
 
+- [Python 3][python]
 - [dmenu][]
 - [xclip][]
 - [YubiKey Manager Python library][ykman], version 0.5.0 or later.
@@ -53,6 +54,7 @@ Installation
 [dmenu]: https://tools.suckless.org/dmenu/
 [i3wm]: https://i3wm.org/docs/userguide.html
 [libnotify]: https://developer.gnome.org/libnotify/
+[python]: https://www.python.org/
 [xclip]: https://linux.die.net/man/1/xclip
 [xdotool]: http://www.semicomplete.com/projects/xdotool/
 [ykman]: https://github.com/Yubico/yubikey-manager
