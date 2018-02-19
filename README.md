@@ -33,8 +33,7 @@ Dependencies
 
 - [dmenu][]
 - [xclip][]
-- [YubiKey Manager CLI][ykman], version 0.5.0 or later, installed in `$PATH` as
-  `ykman`
+- [YubiKey Manager Python library][ykman], version 0.5.0 or later.
 
 Optional dependencies:
 
