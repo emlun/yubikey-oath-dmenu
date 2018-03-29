@@ -1,3 +1,6 @@
+- Version 0.4.0 - released 2018-03-29
+  - Now prints and notifies with a message asking to touch the YubiKey if needed
+
 - Version 0.3.0 - released 2018-02-19
   - Complete rewrite in Python instead of shell; CLI should be mostly the same
   - Now supports multiple YubiKeys as long as no credential ID exists on both
