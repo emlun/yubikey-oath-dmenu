@@ -7,6 +7,11 @@ This program lets you pick an OATH credential from your YubiKey using [dmenu][],
 and copies the corresponding OTP to the clipboard using [xclip][].
 Alternatively, it can "type" the OTP using [xdotool][].
 
+Notable features:
+
+- Pick between all credentials on all connected YubiKeys
+- No mouse interaction required
+
 
 Usage
 ---
