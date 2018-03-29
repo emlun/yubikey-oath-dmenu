@@ -20,13 +20,15 @@ import subprocess
 import ykman.driver_ccid
 import ykman.oath
 
-VERSION = '0.3.0'
+from threading import Timer
+
+
+VERSION = '0.4.0'
 
 notify_enabled = False
 
 
-@click.pass_context
-def notify(ctx, *args, expire_time=3000, urgency='normal'):
+def notify_raw(ctx, *args, expire_time=3000, urgency='normal'):
     if notify_enabled:
         subprocess.run([
             'notify-send',
@@ -37,8 +39,18 @@ def notify(ctx, *args, expire_time=3000, urgency='normal'):
         ])
 
 
+@click.pass_context
+def notify(ctx, *args, **kwargs):
+    notify_raw(ctx, *args, **kwargs)
+
+
 def notify_err(*args, **kwargs):
     notify(*args, expire_time=5000, urgency='critical', **kwargs)
+
+
+def touch_callback(ctx):
+    click.echo('Please touch your YubiKey...')
+    notify_raw(ctx, 'Please touch your YubiKey...')
 
 
 @click.command()
@@ -55,9 +67,6 @@ def cli(ctx, clipboard, notify_enable, typeit):
     '''
     Select an OATH credential on your YubiKey using dmenu, then copy the
     corresponding OTP to the clipboard using xclip.
-
-    Note that your YubiKey may flash to ask you to touch it before generating
-    the code, and this program will give you no other indication of that.
     '''
     global notify_enabled
     notify_enabled = notify_enable
@@ -106,7 +115,10 @@ def cli(ctx, clipboard, notify_enable, typeit):
         ctrl_idx = credential_id_to_controller_idx[selected_cred_id]
         ctrl = controllers[ctrl_idx]
 
+        touch_timer = Timer(0.500, touch_callback, [ctx])
+        touch_timer.start()
         code = ctrl.calculate(credentials[ctrl_idx][selected_cred_id]).value
+        touch_timer.cancel()
 
         if typeit:
             subprocess.run(['xdotool', 'type', code])
