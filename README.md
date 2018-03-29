@@ -24,9 +24,6 @@ in [i3wm][] like this:
     bindsym $mod+o exec yubikey-oath-dmenu --notify --clipboard clipboard
     bindsym $mod+Shift+o exec yubikey-oath-dmenu --notify --type
 
-Note that your YubiKey may flash to ask you to touch it before generating the
-code, and this program will give you no other indication of that.
-
 
 Dependencies
 ---
