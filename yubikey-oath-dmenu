@@ -79,6 +79,7 @@ def cli(ctx, clipboard, notify_enable, typeit):
     credentials = {
         k: {cred.printable_key: cred
             for cred in ctrl.list()
+            if not cred.printable_key.startswith('_hidden')
             }
         for k, ctrl in controllers.items()
     }
