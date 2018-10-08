@@ -65,7 +65,7 @@ def touch_callback(ctx):
 @click.option('--type', 'typeit', default=False, is_flag=True,
               help='Type code using xdotool instead of copying to clipboard')
 @click.version_option(version=VERSION)
-def cli(ctx, clipboard, notify_enable, typeit, no_hidden):
+def cli(ctx, clipboard, notify_enable, no_hidden, typeit):
     '''
     Select an OATH credential on your YubiKey using dmenu, then copy the
     corresponding OTP to the clipboard using xclip.
