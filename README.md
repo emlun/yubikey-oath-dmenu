@@ -7,6 +7,11 @@ This program lets you pick an OATH credential from your YubiKey using [dmenu][],
 and copies the corresponding OTP to the clipboard using [xclip][].
 Alternatively, it can "type" the OTP using [xdotool][].
 
+Notable features:
+
+- Pick between all credentials on all connected YubiKeys
+- No mouse interaction required
+
 
 Usage
 ---
@@ -23,9 +28,6 @@ in [i3wm][] like this:
     # Grab OTPs from ykman oath
     bindsym $mod+o exec yubikey-oath-dmenu --notify --clipboard clipboard
     bindsym $mod+Shift+o exec yubikey-oath-dmenu --notify --type
-
-Note that your YubiKey may flash to ask you to touch it before generating the
-code, and this program will give you no other indication of that.
 
 
 Dependencies
