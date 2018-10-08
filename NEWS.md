@@ -1,3 +1,7 @@
+- Version 0.5.0 (unreleased)
+  - New option `--no-hidden` which hides credentials whose ID start with
+    `_hidden`
+
 - Version 0.4.0 - released 2018-03-29
   - Now prints and notifies with a message asking to touch the YubiKey if needed
 
