@@ -61,3 +61,11 @@ Installation
 [xdotool]: http://www.semicomplete.com/projects/xdotool/
 [ykman]: https://github.com/Yubico/yubikey-manager
 [YubiKey]: https://www.yubico.com/products/yubikey-hardware/
+
+
+Contributors
+---
+
+Big thanks to our contributors:
+
+- [relatev](https://github.com/relatev)
