@@ -1,3 +1,6 @@
+- Version 0.5.1 - released 2018-10-09
+  - Fixed version number
+
 - Version 0.5.0 - released 2018-10-08
   - New option `--no-hidden` which hides credentials whose ID start with
     `_hidden`
