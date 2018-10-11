@@ -1,3 +1,7 @@
+- Version 0.6.0 (unreleased)
+  - Unknown options and arguments are now passed through to dmenu - thanks
+    @relatev!
+
 - Version 0.5.1 - released 2018-10-09
   - Fixed version number - thanks @relatev!
 
