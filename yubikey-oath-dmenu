@@ -52,21 +52,20 @@ def touch_callback(ctx):
     click.echo('Please touch your YubiKey...')
     notify_raw(ctx, 'Please touch your YubiKey...')
 
-
 @click.command(context_settings=dict(ignore_unknown_options=True))
 @click.pass_context
 @click.option('--clipboard', metavar='CLIPBOARD',
               help='Passed through as -selection option to xclip')
+@click.argument("dmenu_args", nargs=-1, type=click.UNPROCESSED)
 @click.help_option('-h', '--help')
-@click.option('--no-hidden', 'no_hidden', default=False, is_flag=True,
+@click.option('--no-hidden', 'no_hidde-n', default=False, is_flag=True,
               help='Hide _hidden credentials')
 @click.option('--notify', 'notify_enable', default=False, is_flag=True,
               help='Provide feedback via notify-send')
 @click.option('--type', 'typeit', default=False, is_flag=True,
               help='Type code using xdotool instead of copying to clipboard')
-@click.argument("dmenu_args", nargs=-1, type=click.UNPROCESSED)
 @click.version_option(version=VERSION)
-def cli(ctx, clipboard, notify_enable, no_hidden, typeit, dmenu_args):
+def cli(ctx, clipboard, dmenu_agrs, notify_enable, no_hidden, typeit):
     '''
     Select an OATH credential on your YubiKey using dmenu, then copy the
     corresponding OTP to the clipboard using xclip.
