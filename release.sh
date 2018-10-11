@@ -12,7 +12,7 @@ PREFIX="${PROJECT_NAME}"-"${version}"/
 TAG=v"${version}"
 
 git archive --prefix "${PREFIX}" -o "${TAR_FILE}" "${TAG}"
-gpg --detach-sign "${SIG_FILE}"
+gpg --detach-sign "${TAR_FILE}"
 gpg --verify "${SIG_FILE}"
 
 echo "Successfully released version ${version}"
