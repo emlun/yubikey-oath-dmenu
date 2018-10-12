@@ -34,6 +34,7 @@ Dependencies
 ---
 
 - [Python 3][python]
+- [Click][click]
 - [dmenu][]
 - [xclip][]
 - [YubiKey Manager Python library][ykman], version 0.5.0 or later.
@@ -53,6 +54,7 @@ Installation
 
 
 [aur]: https://aur.archlinux.org/packages/yubikey-oath-dmenu
+[click]: https://palletsprojects.com/p/click/
 [dmenu]: https://tools.suckless.org/dmenu/
 [i3wm]: https://i3wm.org/docs/userguide.html
 [libnotify]: https://developer.gnome.org/libnotify/
