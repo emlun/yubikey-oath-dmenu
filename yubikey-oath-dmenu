@@ -27,7 +27,6 @@ VERSION = '0.6.0'
 
 notify_enabled = False
 
-
 def notify_raw(ctx, *args, expire_time=3000, urgency='normal'):
     if notify_enabled:
         subprocess.run([
@@ -56,6 +55,8 @@ def touch_callback(ctx):
 @click.pass_context
 @click.option('--clipboard', metavar='CLIPBOARD',
               help='Passed through as -selection option to xclip')
+@click.option('--dmenu-prompt', 'dmenu_prompt', metavar='PROMPT', default = 'Credentials:',
+              help='Passed as --prompt argument to dmenu')
 @click.help_option('-h', '--help')
 @click.option('--no-hidden', 'no_hidden', default=False, is_flag=True,
               help='Hide _hidden credentials')
@@ -65,7 +66,7 @@ def touch_callback(ctx):
               help='Type code using xdotool instead of copying to clipboard')
 @click.argument('dmenu_args', nargs=-1, type=click.UNPROCESSED)
 @click.version_option(version=VERSION)
-def cli(ctx, clipboard, notify_enable, no_hidden, typeit, dmenu_args):
+def cli(ctx, clipboard, dmenu_prompt, notify_enable, no_hidden, typeit, dmenu_args):
     '''
     Select an OATH credential on your YubiKey using dmenu, then copy the
     corresponding OTP to the clipboard using xclip.
@@ -106,7 +107,7 @@ def cli(ctx, clipboard, notify_enable, no_hidden, typeit, dmenu_args):
     }
 
     dmenu_proc = subprocess.Popen(
-        ['dmenu', '-p', 'Credential:', '-i'] + list(dmenu_args),
+        ['dmenu', '-p', dmenu_prompt, '-i'] + list(dmenu_args),
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         encoding='utf-8'
