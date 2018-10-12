@@ -56,7 +56,7 @@ def touch_callback(ctx):
 @click.option('--clipboard', metavar='CLIPBOARD',
               help='Passed through as -selection option to xclip')
 @click.option('--dmenu-prompt', 'dmenu_prompt', metavar='PROMPT', default = 'Credentials:',
-              help='Passed as --prompt argument to dmenu')
+              help='Passed as -p argument to dmenu')
 @click.help_option('-h', '--help')
 @click.option('--no-hidden', 'no_hidden', default=False, is_flag=True,
               help='Hide _hidden credentials')
