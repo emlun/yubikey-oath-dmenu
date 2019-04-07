@@ -50,8 +50,24 @@ Installation
 ---
 
 - **Arch Linux**: [AUR package][aur]
-- **Others**: Place `yubikey-oath-dmenu` somewhere on your `$PATH`.
-  `/usr/local/bin/` probably works, for example.
+- **Others**: Place `yubikey-oath-dmenu.py` with executable mode somewhere on
+  your `$PATH`. `/usr/local/bin/` probably works, for example. The included
+  Makefile provides targets for this:
+
+  ```
+  # make install
+  install -D -m755 "yubikey-oath-dmenu.py" "/usr/local/bin/yubikey-oath-dmenu"
+
+  # make uninstall
+  rm "/usr/local/bin/yubikey-oath-dmenu"
+  ```
+
+  Both targets respect the standard `DESTDIR` and `PREFIX` variables:
+
+  ```
+  $ make DESTDIR=/tmp/yubikey-oath-dmenu PREFIX=/usr install
+  install -D -m755 "yubikey-oath-dmenu.py" "/tmp/yubikey-oath-dmenu/usr/bin/yubikey-oath-dmenu"
+  ```
 
 
 [aur]: https://aur.archlinux.org/packages/yubikey-oath-dmenu

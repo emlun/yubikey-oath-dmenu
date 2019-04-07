@@ -24,7 +24,7 @@ import ykman.oath
 from threading import Timer
 
 
-VERSION = '0.7.0-dev'
+VERSION = '0.7.0'
 
 notify_enabled = False
 
