@@ -42,6 +42,7 @@ Dependencies
 Optional dependencies:
 
 - [libnotify][]: For the `--notify` option, which uses `notify-send`
+- [pinentry][]: To prompt for the YubiKey OATH password when needed
 - [xdotool][]: For the `--type` option
 
 
@@ -58,6 +59,7 @@ Installation
 [dmenu]: https://tools.suckless.org/dmenu/
 [i3wm]: https://i3wm.org/docs/userguide.html
 [libnotify]: https://developer.gnome.org/libnotify/
+[pinentry]: https://www.gnupg.org/related_software/pinentry/index.html
 [python]: https://www.python.org/
 [xclip]: https://linux.die.net/man/1/xclip
 [xdotool]: http://www.semicomplete.com/projects/xdotool/
