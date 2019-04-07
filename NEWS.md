@@ -1,6 +1,9 @@
 - Version 0.7.0 (unreleased)
   - New option `--dmenu-prompt` which is passed through as `-p` to dmenu -
     thanks Andrei Gherzan!
+  - Will now prompt for YubiKey OATH password if needed
+  - New option `--pinentry` to set pinentry program to use to prompt for
+    password when needed
 
 - Version 0.6.0 - released 2018-10-11
   - Unknown options and arguments are now passed through to dmenu - thanks
