@@ -53,7 +53,28 @@ def touch_callback(ctx):
     click.echo('Please touch your YubiKey...')
     notify_raw(ctx, 'Please touch your YubiKey...')
 
-def provide_device_password(oath_controller):
+def enter_password_if_needed(oath_controller, retries=3):
+    if retries == 0:
+        return False
+    else:
+        try:
+            oath_controller.list()
+            return True
+        except ykman.oath.APDUError as e:
+            if e.sw == ykman.oath.SW.SECURITY_CONDITION_NOT_SATISFIED:
+                try:
+                    provide_device_password(oath_controller)
+                    return True
+
+                except ykman.oath.APDUError as ee:
+                    if ee.sw == ykman.oath.SW.INCORRECT_PARAMETERS:
+                        return enter_password_if_needed(oath_controller, retries - 1)
+                    else:
+                        raise
+            else:
+                raise
+
+def provide_device_password(oath_controller, retries=3):
     tkinter.Tk().withdraw()
     password = tkinter.simpledialog.askstring("YubiKey OATH password", "Password:", show="*")
     key = oath_controller.derive_key(password)
@@ -91,13 +112,11 @@ def cli(ctx, clipboard, dmenu_prompt, notify_enable, no_hidden, typeit, dmenu_ar
                    }
 
     for k, ctrl in controllers.items():
-        try:
-            ctrl.list()
-        except ykman.oath.APDUError as e:
-            if e.sw == ykman.oath.SW.SECURITY_CONDITION_NOT_SATISFIED:
-                provide_device_password(ctrl)
-            else:
-                raise
+        if not enter_password_if_needed(ctrl):
+            msg = 'Password authentication failed'
+            notify_err(msg)
+            ctx.fail(msg)
+
 
     credentials = {
         k: {cred.printable_key: cred
