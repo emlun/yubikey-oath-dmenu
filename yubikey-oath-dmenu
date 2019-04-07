@@ -63,8 +63,12 @@ def enter_password_if_needed(oath_controller, retries=3):
         except ykman.oath.APDUError as e:
             if e.sw == ykman.oath.SW.SECURITY_CONDITION_NOT_SATISFIED:
                 try:
-                    provide_device_password(oath_controller)
-                    return True
+                    password = ask_password()
+                    if password is None:
+                        return False
+                    else:
+                        verify_password(oath_controller, password)
+                        return True
 
                 except ykman.oath.APDUError as ee:
                     if ee.sw == ykman.oath.SW.INCORRECT_PARAMETERS:
@@ -74,9 +78,13 @@ def enter_password_if_needed(oath_controller, retries=3):
             else:
                 raise
 
-def provide_device_password(oath_controller, retries=3):
+
+def ask_password(retries=3):
     tkinter.Tk().withdraw()
-    password = tkinter.simpledialog.askstring("YubiKey OATH password", "Password:", show="*")
+    return tkinter.simpledialog.askstring("YubiKey OATH password", "Password:", show="*")
+
+
+def verify_password(oath_controller, password):
     key = oath_controller.derive_key(password)
     oath_controller.validate(key)
 
