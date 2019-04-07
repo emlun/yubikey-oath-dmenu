@@ -83,20 +83,24 @@ def enter_password_if_needed(oath_controller, pinentry_program, retries=3):
 
 
 def ask_password(pinentry_program, retries=3):
-    pinentry_process = subprocess.run(
-        [pinentry_program],
-        input='SETTITLE YubiKey OATH\nSETPROMPT Password:\nGETPIN\n',
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        encoding='utf-8'
-    )
-    password_match = re.search(r"(?:^|\n)D (.*?)(?:^|\n)", pinentry_process.stdout)
-    if password_match is None:
-        print(pinentry_process.stdout)
-        print(pinentry_process.stderr)
+    try:
+        pinentry_process = subprocess.run(
+            [pinentry_program],
+            input='SETTITLE YubiKey OATH\nSETPROMPT Password:\nGETPIN\n',
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            encoding='utf-8'
+        )
+        password_match = re.search(r"(?:^|\n)D (.*?)(?:^|\n)", pinentry_process.stdout)
+        if password_match is None:
+            print(pinentry_process.stdout)
+            print(pinentry_process.stderr)
+            return None
+        else:
+            return password_match.group(1)
+    except FileNotFoundError as e:
+        print(str(e))
         return None
-    else:
-        return password_match.group(1)
 
 
 def verify_password(oath_controller, password):
