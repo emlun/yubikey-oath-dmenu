@@ -17,6 +17,8 @@
 
 import click
 import subprocess
+import tkinter
+import tkinter.simpledialog
 import ykman.driver_ccid
 import ykman.oath
 
@@ -51,6 +53,13 @@ def touch_callback(ctx):
     click.echo('Please touch your YubiKey...')
     notify_raw(ctx, 'Please touch your YubiKey...')
 
+def provide_device_password(oath_controller):
+    tkinter.Tk().withdraw()
+    password = tkinter.simpledialog.askstring("YubiKey OATH password", "Password:", show="*")
+    key = oath_controller.derive_key(password)
+    oath_controller.validate(key)
+
+
 @click.command(context_settings=dict(ignore_unknown_options=True))
 @click.pass_context
 @click.option('--clipboard', metavar='CLIPBOARD',
@@ -80,6 +89,15 @@ def cli(ctx, clipboard, dmenu_prompt, notify_enable, no_hidden, typeit, dmenu_ar
                    for i, driver in enumerate(
                        ykman.driver_ccid.open_devices())
                    }
+
+    for k, ctrl in controllers.items():
+        try:
+            ctrl.list()
+        except ykman.oath.APDUError as e:
+            if e.sw == ykman.oath.SW.SECURITY_CONDITION_NOT_SATISFIED:
+                provide_device_password(ctrl)
+            else:
+                raise
 
     credentials = {
         k: {cred.printable_key: cred
