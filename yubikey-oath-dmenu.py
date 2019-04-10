@@ -16,6 +16,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import click
+import re
 import subprocess
 import ykman.driver_ccid
 import ykman.oath
@@ -51,6 +52,62 @@ def touch_callback(ctx):
     click.echo('Please touch your YubiKey...')
     notify_raw(ctx, 'Please touch your YubiKey...')
 
+def enter_password_if_needed(oath_controller, pinentry_program, retries=3):
+    if retries == 0:
+        return False
+    else:
+        try:
+            oath_controller.list()
+            return True
+        except ykman.oath.APDUError as e:
+            if e.sw == ykman.oath.SW.SECURITY_CONDITION_NOT_SATISFIED:
+                try:
+                    password = ask_password(pinentry_program)
+                    if password is None:
+                        return False
+                    else:
+                        verify_password(oath_controller, password)
+                        return True
+
+                except ykman.oath.APDUError as ee:
+                    if ee.sw == ykman.oath.SW.INCORRECT_PARAMETERS:
+                        return enter_password_if_needed(
+                            oath_controller,
+                            pinentry_program=pinentry_program,
+                            retries = retries - 1
+                        )
+                    else:
+                        raise
+            else:
+                raise
+
+
+def ask_password(pinentry_program, retries=3):
+    try:
+        pinentry_process = subprocess.run(
+            [pinentry_program],
+            input='SETTITLE YubiKey OATH\nSETPROMPT Password:\nGETPIN\n',
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            encoding='utf-8'
+        )
+        password_match = re.search(r"(?:^|\n)D (.*?)(?:^|\n)", pinentry_process.stdout)
+        if password_match is None:
+            print(pinentry_process.stdout)
+            print(pinentry_process.stderr)
+            return None
+        else:
+            return password_match.group(1)
+    except FileNotFoundError as e:
+        print(str(e))
+        return None
+
+
+def verify_password(oath_controller, password):
+    key = oath_controller.derive_key(password)
+    oath_controller.validate(key)
+
+
 @click.command(context_settings=dict(ignore_unknown_options=True))
 @click.pass_context
 @click.option('--clipboard', metavar='CLIPBOARD',
@@ -62,11 +119,13 @@ def touch_callback(ctx):
               help='Hide _hidden credentials')
 @click.option('--notify', 'notify_enable', default=False, is_flag=True,
               help='Provide feedback via notify-send')
+@click.option('--pinentry', 'pinentry_program', metavar='BINARY', default='pinentry',
+              help='Use pinentry program BINARY to prompt for password when needed')
 @click.option('--type', 'typeit', default=False, is_flag=True,
               help='Type code using xdotool instead of copying to clipboard')
 @click.argument('dmenu_args', nargs=-1, type=click.UNPROCESSED)
 @click.version_option(version=VERSION)
-def cli(ctx, clipboard, dmenu_prompt, notify_enable, no_hidden, typeit, dmenu_args):
+def cli(ctx, clipboard, dmenu_prompt, notify_enable, no_hidden, pinentry_program, typeit, dmenu_args):
     '''
     Select an OATH credential on your YubiKey using dmenu, then copy the
     corresponding OTP to the clipboard using xclip.
@@ -80,6 +139,13 @@ def cli(ctx, clipboard, dmenu_prompt, notify_enable, no_hidden, typeit, dmenu_ar
                    for i, driver in enumerate(
                        ykman.driver_ccid.open_devices())
                    }
+
+    for k, ctrl in controllers.items():
+        if not enter_password_if_needed(ctrl, pinentry_program):
+            msg = 'Password authentication failed'
+            notify_err(msg)
+            ctx.fail(msg)
+
 
     credentials = {
         k: {cred.printable_key: cred

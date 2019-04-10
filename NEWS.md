@@ -1,3 +1,8 @@
+- Version 0.8.0 (unreleased)
+  - Will now prompt for YubiKey OATH password if needed
+  - New option `--pinentry` to set pinentry program to use to prompt for
+    password when needed
+
 - Version 0.7.0 - released 2018-10-20
   - New option `--dmenu-prompt` which is passed through as `-p` to dmenu -
     thanks Andrei Gherzan!
