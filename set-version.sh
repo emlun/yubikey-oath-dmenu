@@ -2,4 +2,4 @@
 
 version=$(./compute-version.sh)
 
-sed -i "s/^VERSION\s*=\s*'.*'/VERSION = '$version'/" yubikey-oath-dmenu
+sed -i "s/^VERSION\s*=\s*'.*'/VERSION = '$version'/" yubikey-oath-dmenu.py

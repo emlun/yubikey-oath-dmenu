@@ -5,10 +5,10 @@ set -e # Exit on error
 
 version="${1:-$(./compute-version.sh)}"
 
-SCRIPT_SRC_FILENAME=yubikey-oath-dmenu.py
-SCRIPT_VERSIONED_FILENAME="${SCRIPT_SRC_FILENAME}-${version}.py"
-SCRIPT_SIG_FILENAME="${SCRIPT_VERSIONED_FILENAME}.sig"
 PROJECT_NAME=yubikey-oath-dmenu
+SCRIPT_SRC_FILENAME=yubikey-oath-dmenu.py
+SCRIPT_VERSIONED_FILENAME="${PROJECT_NAME}-${version}.py"
+SCRIPT_SIG_FILENAME="${SCRIPT_VERSIONED_FILENAME}.sig"
 TAR_FILE="${PROJECT_NAME}"-"${version}".tar.gz
 SIG_FILE="${TAR_FILE}".sig
 PREFIX="${PROJECT_NAME}"-"${version}"/
