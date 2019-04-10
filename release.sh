@@ -21,6 +21,6 @@ gpg --verify "${SIG_FILE}"
 
 install -m 644 "${SCRIPT_SRC_FILENAME}" "${SCRIPT_VERSIONED_FILENAME}"
 gpg --detach-sign "${SCRIPT_VERSIONED_FILENAME}"
-gpg --verify "${SIG_FILE}"
+gpg --verify "${SCRIPT_SIG_FILENAME}"
 
 echo "Successfully released version ${version}"
