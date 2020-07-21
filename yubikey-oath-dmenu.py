@@ -122,7 +122,7 @@ def verify_password(oath_controller, password):
 @click.option('--pinentry', 'pinentry_program', metavar='BINARY', default='pinentry',
               help='Use pinentry program BINARY to prompt for password when needed')
 @click.option('--type', 'typeit', default=False, is_flag=True,
-              help='Type code using xdotool instead of copying to clipboard')
+              help='Type code instead of copying to clipboard')
 @click.argument('dmenu_args', nargs=-1, type=click.UNPROCESSED)
 @click.version_option(version=VERSION)
 def cli(ctx, clipboard, dmenu_prompt, notify_enable, no_hidden, pinentry_program, typeit, dmenu_args):
@@ -192,7 +192,10 @@ def cli(ctx, clipboard, dmenu_prompt, notify_enable, no_hidden, pinentry_program
         touch_timer.cancel()
 
         if typeit:
-            subprocess.run(['xdotool', 'type', code])
+            if "WAYLAND_DISPLAY" in os.environ:
+                subprocess.run(['wtype', code])
+            else:
+                subprocess.run(['xdotool', 'type', code])
         else:
             xclip_proc = subprocess.Popen(
                 ['xclip', '-selection', clipboard] if clipboard else ['xclip'],
