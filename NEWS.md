@@ -1,4 +1,8 @@
-- Version 0.8.0
+- Version 0.9.0 - released 2020-07-22
+  - If `wtype` is available, it will be preferred over `xdotool` when `--type`
+    is used
+
+- Version 0.8.0 - released 2019-04-10
   - Will now prompt for YubiKey OATH password if needed
   - New option `--pinentry` to set pinentry program to use to prompt for
     password when needed

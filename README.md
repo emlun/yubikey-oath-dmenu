@@ -5,7 +5,8 @@ yubikey-oath-dmenu
 
 This program lets you pick an OATH credential from your YubiKey using [dmenu][],
 and copies the corresponding OTP to the clipboard using [xclip][].
-Alternatively, it can "type" the OTP using [xdotool][].
+Alternatively, it can "type" the OTP using [xdotool][] on X11 or [wtype][]
+on Wayland.
 
 Notable features:
 
@@ -27,7 +28,7 @@ in [i3wm][] like this:
 
     # Grab OTPs from ykman oath
     bindsym $mod+o exec yubikey-oath-dmenu --notify --clipboard clipboard
-    bindsym $mod+Shift+o exec yubikey-oath-dmenu --notify --type
+    bindsym $mod+Shift+o exec yubikey-oath-dmenu --notify --type -p "Credential to type:"
 
 
 Dependencies
@@ -43,7 +44,8 @@ Optional dependencies:
 
 - [libnotify][]: For the `--notify` option, which uses `notify-send`
 - [pinentry][]: To prompt for the YubiKey OATH password when needed
-- [xdotool][]: For the `--type` option
+- [xdotool][]: For the `--type` option under X11
+- [wtype][]: For the `--type` option under Wayland (`xdotool` might also work)
 
 
 Installation
@@ -77,6 +79,7 @@ Installation
 [libnotify]: https://developer.gnome.org/libnotify/
 [pinentry]: https://www.gnupg.org/related_software/pinentry/index.html
 [python]: https://www.python.org/
+[wtype]: https://github.com/atx/wtype
 [xclip]: https://linux.die.net/man/1/xclip
 [xdotool]: http://www.semicomplete.com/projects/xdotool/
 [ykman]: https://github.com/Yubico/yubikey-manager
@@ -89,4 +92,5 @@ Contributors
 Big thanks to our contributors:
 
 - [Andrei Gherzan](https://github.com/agherzan)
+- [Mark Stosberg](https://github.com/markstos)
 - [relatev](https://github.com/relatev)
