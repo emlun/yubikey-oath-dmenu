@@ -17,7 +17,9 @@
 
 import click
 import re
+import shutil
 import subprocess
+import sys
 import ykman.driver_ccid
 import ykman.oath
 
@@ -135,6 +137,16 @@ def cli(ctx, clipboard, dmenu_prompt, notify_enable, no_hidden, pinentry_program
     global notify_enabled
     notify_enabled = notify_enable
 
+    typeit_cmd = None
+    if typeit:
+        if shutil.which('wtype'):
+            typeit_cmd = ['wtype']
+        elif shutil.which('xdotool'):
+            typeit_cmd = ['xdotool', 'type']
+        else:
+            click.echo('Error: wtype or xdotool binary not found', err=True)
+            sys.exit(1)
+
     controllers = {i: ykman.oath.OathController(driver)
                    for i, driver in enumerate(
                        ykman.driver_ccid.open_devices())
@@ -145,7 +157,6 @@ def cli(ctx, clipboard, dmenu_prompt, notify_enable, no_hidden, pinentry_program
             msg = 'Password authentication failed'
             notify_err(msg)
             ctx.fail(msg)
-
 
     credentials = {
         k: {cred.printable_key: cred
@@ -191,11 +202,8 @@ def cli(ctx, clipboard, dmenu_prompt, notify_enable, no_hidden, pinentry_program
         code = ctrl.calculate(credentials[ctrl_idx][selected_cred_id]).value
         touch_timer.cancel()
 
-        if typeit:
-            if "WAYLAND_DISPLAY" in os.environ:
-                subprocess.run(['wtype', code])
-            else:
-                subprocess.run(['xdotool', 'type', code])
+        if typeit_cmd:
+            subprocess.run(typeit_cmd + [code])
         else:
             xclip_proc = subprocess.Popen(
                 ['xclip', '-selection', clipboard] if clipboard else ['xclip'],

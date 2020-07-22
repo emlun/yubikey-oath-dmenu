@@ -45,7 +45,7 @@ Optional dependencies:
 - [libnotify][]: For the `--notify` option, which uses `notify-send`
 - [pinentry][]: To prompt for the YubiKey OATH password when needed
 - [xdotool][]: For the `--type` option under X11
-- [wtype][]: For the `--type` option under Wayland
+- [wtype][]: For the `--type` option under Wayland (`xdotool` might also work)
 
 
 Installation
