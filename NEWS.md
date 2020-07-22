@@ -1,6 +1,6 @@
 - Version 0.9.0 - released 2020-07-22
   - If `wtype` is available, it will be preferred over `xdotool` when `--type`
-    is used
+    is used - thanks Mark Stosberg!
 
 - Version 0.8.0 - released 2019-04-10
   - Will now prompt for YubiKey OATH password if needed
