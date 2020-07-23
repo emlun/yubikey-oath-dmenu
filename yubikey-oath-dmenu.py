@@ -18,6 +18,7 @@
 import click
 import re
 import shutil
+import shlex
 import subprocess
 import sys
 import ykman.driver_ccid
@@ -112,8 +113,8 @@ def verify_password(oath_controller, password):
 
 @click.command(context_settings=dict(ignore_unknown_options=True))
 @click.pass_context
-@click.option('--clipboard', metavar='CLIPBOARD',
-              help='Passed through as -selection option to xclip')
+@click.option('--clipboard', metavar='CLIPBOARD', default=False,
+              help='Passed as clipboard command')
 @click.option('--dmenu-prompt', 'dmenu_prompt', metavar='PROMPT', default = 'Credentials:',
               help='Passed as -p argument to dmenu')
 @click.help_option('-h', '--help')
@@ -129,8 +130,8 @@ def verify_password(oath_controller, password):
 @click.version_option(version=VERSION)
 def cli(ctx, clipboard, dmenu_prompt, notify_enable, no_hidden, pinentry_program, typeit, dmenu_args):
     '''
-    Select an OATH credential on your YubiKey using dmenu, then copy the
-    corresponding OTP to the clipboard using xclip.
+    Select an OATH credential on your YubiKey using dmenu, then write the
+    corresponding OTP to stdout.
 
     Unknown options and arguments are passed through to dmenu.
     '''
@@ -204,16 +205,18 @@ def cli(ctx, clipboard, dmenu_prompt, notify_enable, no_hidden, pinentry_program
 
         if typeit_cmd:
             subprocess.run(typeit_cmd + [code])
-        else:
-            xclip_proc = subprocess.Popen(
-                ['xclip', '-selection', clipboard] if clipboard else ['xclip'],
+        elif clipboard:
+            clip_proc = subprocess.Popen(
+                shlex.split(clipboard),
                 stdin=subprocess.PIPE,
                 encoding='utf-8'
             )
-            xclip_proc.communicate(code)
+            clip_proc.communicate(code)
             msg = 'OTP copied to clipboard: %s' % selected_cred_id
             click.echo(msg)
             notify(msg)
+        else:
+            print(code)
 
     else:
         click.echo('Aborted by user.')
