@@ -4,9 +4,9 @@ yubikey-oath-dmenu
 [dmenu][] interface for getting OATH codes from a [YubiKey][]
 
 This program lets you pick an OATH credential from your YubiKey using [dmenu][],
-and writes the OTP to stdout.
-Alternatively, it can copy the OTP to a clipboard tool or "type" the OTP using [xdotool][] on X11
-or [wtype][] on Wayland.
+and copies the corresponding OTP to the clipboard.
+Alternatively, it can "type" the OTP using [xdotool][] on X11 or [wtype][]
+on Wayland.
 
 Notable features:
 
@@ -27,7 +27,8 @@ window manager or desktop environment. For example, you could bind it to
 in [i3wm][] like this:
 
     # Grab OTPs from ykman oath
-    bindsym $mod+o exec yubikey-oath-dmenu --notify --clipboard "xclip -selection clipboard"
+    bindsym $mod+o exec yubikey-oath-dmenu --notify --clipboard clipboard
+    bindsym $mod+o exec yubikey-oath-dmenu --notify --clipboard-cmd "wl-copy --paste-once"
     bindsym $mod+Shift+o exec yubikey-oath-dmenu --notify --type -p "Credential to type:"
 
 
@@ -37,6 +38,7 @@ Dependencies
 - [Python 3][python]
 - [Click][click]
 - [dmenu][]
+- [xclip][]
 - [YubiKey Manager Python library][ykman], version 0.5.0 or later.
 
 Optional dependencies:
@@ -44,8 +46,8 @@ Optional dependencies:
 - [libnotify][]: For the `--notify` option, which uses `notify-send`
 - [pinentry][]: To prompt for the YubiKey OATH password when needed
 - [xdotool][]: For the `--type` option under X11
+- [wl-clipboard][]: Can be used for the `--clipboard-cmd` option
 - [wtype][]: For the `--type` option under Wayland (`xdotool` might also work)
-- a clipboard tool: For the `--clipboard` option, such as [xclip][] or [wl-clipboard][]
 
 
 Installation
