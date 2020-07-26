@@ -114,11 +114,9 @@ def verify_password(oath_controller, password):
 
 @click.command(context_settings=dict(ignore_unknown_options=True))
 @click.pass_context
-@click.option('--clipboard', metavar='CLIPBOARD',
-              help='DEPRECATED: Use --clipboard-cmd instead. '
-              'Passed through as -selection option to xclip; ignored if --clipboard-cmd is given')
-@click.option('--clipboard-cmd', metavar='CLIPBOARD_CMD',
-              help='Copy-to-clipboard command to use instead of xclip')
+@click.option('--clipboard-cmd', metavar='CLIPBOARD_CMD', default=False,
+              help='Command for copying to clipboard; should accept content on standard input. '
+              'If not present, these are tried in order: "wl-copy", "xclip"')
 @click.option('--dmenu-prompt', 'dmenu_prompt', metavar='PROMPT',
               help='DEPRECATED: Use --menu-cmd instead. '
               'Passed as -p argument to dmenu.')
@@ -136,7 +134,7 @@ def verify_password(oath_controller, password):
               help='Type code instead of copying to clipboard')
 @click.argument('dmenu_args', nargs=-1, type=click.UNPROCESSED)
 @click.version_option(version=VERSION)
-def cli(ctx, clipboard, clipboard_cmd, dmenu_prompt, menu_cmd, notify_enable, no_hidden, pinentry_program, typeit, dmenu_args):
+def cli(ctx, clipboard_cmd, dmenu_prompt, menu_cmd, notify_enable, no_hidden, pinentry_program, typeit, dmenu_args):
     '''
     Select an OATH credential on your YubiKey using dmenu, then copy the
     corresponding OTP to the clipboard.
@@ -157,10 +155,6 @@ def cli(ctx, clipboard, clipboard_cmd, dmenu_prompt, menu_cmd, notify_enable, no
             print(*args, file=sys.stderr)
         if notification:
             notify_err(*args)
-
-    if clipboard:
-        message('Warning: --clipboard is deprecated and will be removed in the next release, please use --clipboard-cmd instead.',
-                expire_time=10000)
 
     typeit_cmd = None
     if typeit:
@@ -185,6 +179,16 @@ def cli(ctx, clipboard, clipboard_cmd, dmenu_prompt, menu_cmd, notify_enable, no
             err_message('Error: --menu-cmd conflicts with --dmenu-prompt')
         if dmenu_args:
             err_message('Error: --menu-cmd conflicts with trailing dmenu arguments')
+        sys.exit(1)
+
+    if clipboard_cmd:
+        clip_cmd = shlex.split(clipboard_cmd)
+    elif shutil.which('wl-copy'):
+        clip_cmd = ['wl-copy']
+    elif shutil.which('xclip'):
+        clip_cmd = ['xclip']
+    else:
+        err_message('Error: wl-copy or xclip binary not found')
         sys.exit(1)
 
     controllers = {i: ykman.oath.OathController(driver)
@@ -245,9 +249,6 @@ def cli(ctx, clipboard, clipboard_cmd, dmenu_prompt, menu_cmd, notify_enable, no
         if typeit_cmd:
             subprocess.run(typeit_cmd + [code])
         else:
-            clip_cmd = shlex.split('xclip' if clipboard_cmd is None else clipboard_cmd)
-            if clipboard_cmd is None and clipboard is not None:
-                clip_cmd += ['-selection', clipboard]
             clip_proc = subprocess.Popen(
                 clip_cmd,
                 stdin=subprocess.PIPE,

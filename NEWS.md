@@ -1,3 +1,6 @@
+- Version 0.11.0 (unreleased)
+  - `--clipboard` option removed in favour of `--clipboard-cmd`
+
 - Version 0.10.0 - released 2020-08-02
   - Added support for arbitrary clipboard commands - thanks @ign0tus!
   - `--clipboard` option deprecated in favour of `--clipboard-cmd`
