@@ -129,14 +129,17 @@ def verify_password(oath_controller, password):
               help='Provide feedback via notify-send')
 @click.option('--pinentry', 'pinentry_program', metavar='BINARY', default='pinentry',
               help='Use pinentry program BINARY to prompt for password when needed')
+@click.option('--stdout', 'use_stdout', default=False, is_flag=True,
+              help='Print OTP to standard output')
 @click.option('--type', 'typeit', default=False, is_flag=True,
               help='Type OTP into focused window')
 @click.help_option('-h', '--help')
 @click.version_option(version=VERSION)
-def cli(ctx, clipboard, clipboard_cmd, menu_cmd, notify_enable, no_hidden, pinentry_program, typeit):
+def cli(ctx, clipboard, clipboard_cmd, menu_cmd, notify_enable, no_hidden, pinentry_program, typeit, use_stdout):
     '''
     Select an OATH credential on your YubiKey using dmenu, then copy the
-    corresponding OTP to the clipboard and/or "type" it.
+    corresponding OTP to the clipboard, "type" it, and/or print it to standard
+    output.
     '''
     global notify_enabled
     notify_enabled = notify_enable
@@ -163,7 +166,7 @@ def cli(ctx, clipboard, clipboard_cmd, menu_cmd, notify_enable, no_hidden, pinen
             err_message('Error: wtype or xdotool binary not found')
             sys.exit(1)
 
-    if not clipboard and not typeit:
+    if not clipboard and not (typeit or use_stdout):
         clipboard = True
         message('Warning: Copying to clipboard by default is deprecated and will be '
                 'disabled in the next release. Please specify --clipboard explicitly.',
@@ -246,6 +249,9 @@ def cli(ctx, clipboard, clipboard_cmd, menu_cmd, notify_enable, no_hidden, pinen
             )
             clip_proc.communicate(code)
             message('OTP copied to clipboard: %s' % selected_cred_id)
+
+        if use_stdout:
+            print(code)
 
     else:
         message('Aborted by user.', notification=False)

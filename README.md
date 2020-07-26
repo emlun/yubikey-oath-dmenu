@@ -44,6 +44,11 @@ Example invocations:
   yubikey-oath-dmenu --notify --type
   ```
 
+- Copy the OTP to clipboard, type it _and_ print it on standard output:
+  ```
+  yubikey-oath-dmenu --clipboard --type --stdout
+  ```
+
 - Customize `xclip` options:
   ```
   yubikey-oath-dmenu --clipboard-cmd "xclip -selection clipboard"
