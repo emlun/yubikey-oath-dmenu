@@ -43,8 +43,8 @@ def notify_raw(ctx, *args, expire_time=3000, urgency='normal'):
 
 
 @click.pass_context
-def notify(ctx, *args):
-    notify_raw(ctx, *args)
+def notify(ctx, *args, **kwargs):
+    notify_raw(ctx, *args, **kwargs)
 
 
 def notify_err(*args):
@@ -114,7 +114,8 @@ def verify_password(oath_controller, password):
 @click.command(context_settings=dict(ignore_unknown_options=True))
 @click.pass_context
 @click.option('--clipboard', metavar='CLIPBOARD',
-              help='Passed through as -selection option to xclip; ignored if --clipboard-cmd is given')
+              help='DEPRECATED: Use --clipboard-cmd instead. '
+              'Passed through as -selection option to xclip; ignored if --clipboard-cmd is given')
 @click.option('--clipboard-cmd', metavar='CLIPBOARD_CMD',
               help='Copy-to-clipboard command to use instead of xclip')
 @click.option('--dmenu-prompt', 'dmenu_prompt', metavar='PROMPT', default = 'Credentials:',
@@ -140,17 +141,21 @@ def cli(ctx, clipboard, clipboard_cmd, dmenu_prompt, notify_enable, no_hidden, p
     global notify_enabled
     notify_enabled = notify_enable
 
-    def message(*args, console=True, notification=True):
+    def message(*args, console=True, notification=True, **kwargs):
         if console:
             print(*args, file=sys.stderr)
         if notification:
-            notify(*args)
+            notify(*args, **kwargs)
 
     def err_message(*args, console=True, notification=True):
         if console:
             print(*args, file=sys.stderr)
         if notification:
             notify_err(*args)
+
+    if clipboard:
+        message('Warning: --clipboard is deprecated and will be removed in the next release, please use --clipboard-cmd instead.',
+                expire_time=10000)
 
     typeit_cmd = None
     if typeit:

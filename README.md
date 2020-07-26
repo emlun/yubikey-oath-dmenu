@@ -26,10 +26,38 @@ window manager or desktop environment. For example, you could bind it to
 <kbd>Super</kbd>+<kbd>o</kbd> and <kbd>Super</kbd>+<kbd>Shift</kbd>+<kbd>o</kbd>
 in [i3wm][] like this:
 
-    # Grab OTPs from ykman oath
-    bindsym $mod+o exec yubikey-oath-dmenu --notify --clipboard clipboard
-    bindsym $mod+o exec yubikey-oath-dmenu --notify --clipboard-cmd "wl-copy --paste-once"
-    bindsym $mod+Shift+o exec yubikey-oath-dmenu --notify --type -p "Credential to type:"
+```
+# Grab OTPs from ykman oath
+bindsym $mod+o exec yubikey-oath-dmenu --notify
+bindsym $mod+Shift+o exec yubikey-oath-dmenu --notify --type
+```
+
+Example invocations:
+
+- Defaults: copy to primary clipboard, no notifications
+  ```
+  yubikey-oath-dmenu
+  ```
+
+- Use notifications for feedback and type the OTP into the focused window:
+  ```
+  yubikey-oath-dmenu --notify --type
+  ```
+
+- Customize `xclip` options:
+  ```
+  yubikey-oath-dmenu --clipboard-cmd "xclip -selection clipboard"
+  ```
+
+- Customize `wl-copy` options:
+  ```
+  yubikey-oath-dmenu --clipboard-cmd "wl-copy --paste-once"
+  ```
+
+- Customize dmenu prompt:
+  ```
+  yubikey-oath-dmenu --dmenu-prompt "Credential to type:"
+  ```
 
 
 Dependencies
