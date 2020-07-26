@@ -1,6 +1,9 @@
 - Version 0.10.0 (unreleased)
-  - Add support for arbitrary clipboard commands - thanks @ign0tus!
+  - Added support for arbitrary clipboard commands - thanks @ign0tus!
   - `--clipboard` option deprecated in favour of `--clipboard-cmd`
+  - Added support for arbitrary menu command via `--menu-cmd`
+  - `--dmenu-prompt` option and trailing dmenu arguments deprecated in favour of
+    `--menu-cmd`
 
 - Version 0.9.0 - released 2020-07-22
   - If `wtype` is available, it will be preferred over `xdotool` when `--type`

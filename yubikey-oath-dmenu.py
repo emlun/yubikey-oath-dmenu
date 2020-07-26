@@ -118,8 +118,12 @@ def verify_password(oath_controller, password):
               'Passed through as -selection option to xclip; ignored if --clipboard-cmd is given')
 @click.option('--clipboard-cmd', metavar='CLIPBOARD_CMD',
               help='Copy-to-clipboard command to use instead of xclip')
-@click.option('--dmenu-prompt', 'dmenu_prompt', metavar='PROMPT', default = 'Credentials:',
-              help='Passed as -p argument to dmenu')
+@click.option('--dmenu-prompt', 'dmenu_prompt', metavar='PROMPT',
+              help='DEPRECATED: Use --menu-cmd instead. '
+              'Passed as -p argument to dmenu.')
+@click.option('--menu-cmd', 'menu_cmd', metavar='MENU_CMD',
+              help='Command used to summon the menu. '
+              '''Default: dmenu -p 'Credentials:' -i''')
 @click.help_option('-h', '--help')
 @click.option('--no-hidden', 'no_hidden', default=False, is_flag=True,
               help='Hide _hidden credentials')
@@ -131,7 +135,7 @@ def verify_password(oath_controller, password):
               help='Type code instead of copying to clipboard')
 @click.argument('dmenu_args', nargs=-1, type=click.UNPROCESSED)
 @click.version_option(version=VERSION)
-def cli(ctx, clipboard, clipboard_cmd, dmenu_prompt, notify_enable, no_hidden, pinentry_program, typeit, dmenu_args):
+def cli(ctx, clipboard, clipboard_cmd, dmenu_prompt, menu_cmd, notify_enable, no_hidden, pinentry_program, typeit, dmenu_args):
     '''
     Select an OATH credential on your YubiKey using dmenu, then copy the
     corresponding OTP to the clipboard.
@@ -166,6 +170,21 @@ def cli(ctx, clipboard, clipboard_cmd, dmenu_prompt, notify_enable, no_hidden, p
         else:
             err_message('Error: wtype or xdotool binary not found')
             sys.exit(1)
+
+    if dmenu_prompt:
+        message('Warning: --dmenu-prompt is deprecated and will be removed in the next release, please use --menu-cmd instead.',
+                expire_time=10000)
+
+    if dmenu_args:
+        message('Warning: trailing dmenu arguments are deprecated and will be removed in the next release, please use --menu-cmd instead.',
+                expire_time=10000)
+
+    if menu_cmd and (dmenu_args or dmenu_prompt):
+        if dmenu_prompt:
+            err_message('Error: --menu-cmd conflicts with --dmenu-prompt')
+        if dmenu_args:
+            err_message('Error: --menu-cmd conflicts with trailing dmenu arguments')
+        sys.exit(1)
 
     controllers = {i: ykman.oath.OathController(driver)
                    for i, driver in enumerate(
@@ -203,7 +222,8 @@ def cli(ctx, clipboard, clipboard_cmd, dmenu_prompt, notify_enable, no_hidden, p
     }
 
     dmenu_proc = subprocess.Popen(
-        ['dmenu', '-p', dmenu_prompt, '-i'] + list(dmenu_args),
+        shlex.split(menu_cmd) if menu_cmd
+        else ['dmenu', '-p', dmenu_prompt or 'Credentials:', '-i'] + list(dmenu_args),
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         encoding='utf-8'

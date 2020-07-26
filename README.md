@@ -54,9 +54,9 @@ Example invocations:
   yubikey-oath-dmenu --clipboard-cmd "wl-copy --paste-once"
   ```
 
-- Customize dmenu prompt:
+- Customize `dmenu` options:
   ```
-  yubikey-oath-dmenu --dmenu-prompt "Credential to type:"
+  yubikey-oath-dmenu --menu-cmd 'dmenu -p "Credential to type:"'
   ```
 
 
