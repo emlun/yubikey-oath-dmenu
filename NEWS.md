@@ -1,3 +1,6 @@
+- Version 0.10.0 (unreleased)
+  - Add support for arbitrary clipboard commands - thanks @ign0tus!
+
 - Version 0.9.0 - released 2020-07-22
   - If `wtype` is available, it will be preferred over `xdotool` when `--type`
     is used - thanks Mark Stosberg!
