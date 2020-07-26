@@ -114,13 +114,15 @@ def verify_password(oath_controller, password):
 
 @click.command(context_settings=dict(ignore_unknown_options=True))
 @click.pass_context
-@click.option('--clipboard-cmd', metavar='CLIPBOARD_CMD', default=False,
+@click.option('--clipboard', default=False, is_flag=True,
+              help='Copy OTP to clipboard')
+@click.option('--clipboard-cmd', metavar='CLIPBOARD_CMD', default=None,
               help='Command for copying to clipboard; should accept content on standard input. '
-              'If not present, these are tried in order: "wl-copy", "xclip"')
+              'Implies --clipboard. '
+              'If --clipboard-cmd is not present, --clipboard tries in order: "wl-copy", "xclip"')
 @click.option('--menu-cmd', 'menu_cmd', metavar='MENU_CMD',
               help='Command used to summon the menu. '
               '''Default: dmenu -p 'Credentials:' -i''')
-@click.help_option('-h', '--help')
 @click.option('--no-hidden', 'no_hidden', default=False, is_flag=True,
               help='Hide _hidden credentials')
 @click.option('--notify', 'notify_enable', default=False, is_flag=True,
@@ -128,14 +130,13 @@ def verify_password(oath_controller, password):
 @click.option('--pinentry', 'pinentry_program', metavar='BINARY', default='pinentry',
               help='Use pinentry program BINARY to prompt for password when needed')
 @click.option('--type', 'typeit', default=False, is_flag=True,
-              help='Type code instead of copying to clipboard')
+              help='Type OTP into focused window')
+@click.help_option('-h', '--help')
 @click.version_option(version=VERSION)
-def cli(ctx, clipboard_cmd, menu_cmd, notify_enable, no_hidden, pinentry_program, typeit):
+def cli(ctx, clipboard, clipboard_cmd, menu_cmd, notify_enable, no_hidden, pinentry_program, typeit):
     '''
     Select an OATH credential on your YubiKey using dmenu, then copy the
-    corresponding OTP to the clipboard.
-
-    Unknown options and arguments are passed through to dmenu.
+    corresponding OTP to the clipboard and/or "type" it.
     '''
     global notify_enabled
     notify_enabled = notify_enable
@@ -162,15 +163,23 @@ def cli(ctx, clipboard_cmd, menu_cmd, notify_enable, no_hidden, pinentry_program
             err_message('Error: wtype or xdotool binary not found')
             sys.exit(1)
 
-    if clipboard_cmd:
-        clip_cmd = shlex.split(clipboard_cmd)
-    elif shutil.which('wl-copy'):
-        clip_cmd = ['wl-copy']
-    elif shutil.which('xclip'):
-        clip_cmd = ['xclip']
-    else:
-        err_message('Error: wl-copy or xclip binary not found')
-        sys.exit(1)
+    if not clipboard and not typeit:
+        clipboard = True
+        message('Warning: Copying to clipboard by default is deprecated and will be '
+                'disabled in the next release. Please specify --clipboard explicitly.',
+                expire_time=10000)
+
+    clip_cmd = None
+    if clipboard or clipboard_cmd is not None:
+        if clipboard_cmd:
+            clip_cmd = shlex.split(clipboard_cmd)
+        elif shutil.which('wl-copy'):
+            clip_cmd = ['wl-copy']
+        elif shutil.which('xclip'):
+            clip_cmd = ['xclip']
+        else:
+            err_message('Error: wl-copy or xclip binary not found')
+            sys.exit(1)
 
     controllers = {i: ykman.oath.OathController(driver)
                    for i, driver in enumerate(
@@ -180,8 +189,8 @@ def cli(ctx, clipboard_cmd, menu_cmd, notify_enable, no_hidden, pinentry_program
     for k, ctrl in controllers.items():
         if not enter_password_if_needed(ctrl, pinentry_program):
             msg = 'Password authentication failed'
-            err_message(msg)
-            sys.exit(1)
+            notify_err(msg)
+            ctx.fail(msg)
 
     credentials = {
         k: {cred.printable_key: cred
@@ -228,7 +237,8 @@ def cli(ctx, clipboard_cmd, menu_cmd, notify_enable, no_hidden, pinentry_program
 
         if typeit_cmd:
             subprocess.run(typeit_cmd + [code])
-        else:
+
+        if clip_cmd:
             clip_proc = subprocess.Popen(
                 clip_cmd,
                 stdin=subprocess.PIPE,

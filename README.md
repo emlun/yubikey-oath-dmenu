@@ -34,9 +34,9 @@ bindsym $mod+Shift+o exec yubikey-oath-dmenu --notify --type
 
 Example invocations:
 
-- Defaults: copy to primary clipboard, no notifications
+- Copy OTP to primary clipboard, no notifications
   ```
-  yubikey-oath-dmenu
+  yubikey-oath-dmenu --clipboard
   ```
 
 - Use notifications for feedback and type the OTP into the focused window:

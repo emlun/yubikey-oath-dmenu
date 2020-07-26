@@ -1,3 +1,8 @@
+- Version 0.12.0 (unreleased)
+  - Copying OTP to clipboard and typing it are no longer exclusive
+  - Deprecated copying to clipboard by default in favour of specifying
+    `--clipboard` explicitly
+
 - Version 0.11.0 - released 2020-08-27
   - `--clipboard` option removed in favour of `--clipboard-cmd`
   - `--dmenu-prompt` option and trailing dmenu arguments removed in favour of
