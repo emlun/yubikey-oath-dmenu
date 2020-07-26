@@ -43,12 +43,12 @@ def notify_raw(ctx, *args, expire_time=3000, urgency='normal'):
 
 
 @click.pass_context
-def notify(ctx, *args, **kwargs):
-    notify_raw(ctx, *args, **kwargs)
+def notify(ctx, *args):
+    notify_raw(ctx, *args)
 
 
-def notify_err(*args, **kwargs):
-    notify(*args, expire_time=5000, urgency='critical', **kwargs)
+def notify_err(*args):
+    notify(*args, expire_time=5000, urgency='critical')
 
 
 def touch_callback(ctx):
