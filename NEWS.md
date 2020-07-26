@@ -1,3 +1,7 @@
+- Version 0.13.0 (unreleased)
+  - Copying to clipboard by default disabled in favour of specifying
+    `--clipboard` explicitly
+
 - Version 0.12.0 - released 2020-11-15
   - Copying OTP to clipboard and typing it are no longer exclusive
   - Deprecated copying to clipboard by default in favour of specifying

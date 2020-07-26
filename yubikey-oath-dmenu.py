@@ -166,11 +166,10 @@ def cli(ctx, clipboard, clipboard_cmd, menu_cmd, notify_enable, no_hidden, pinen
             err_message('Error: wtype or xdotool binary not found')
             sys.exit(1)
 
-    if not clipboard and not (typeit or use_stdout):
-        clipboard = True
-        message('Warning: Copying to clipboard by default is deprecated and will be '
-                'disabled in the next release. Please specify --clipboard explicitly.',
-                expire_time=10000)
+    if not (clipboard or typeit or use_stdout):
+        err_message('No output mode specified. '
+                    'Please specify --clipboard, --type, and/or --stdout.')
+        sys.exit(1)
 
     clip_cmd = None
     if clipboard or clipboard_cmd is not None:

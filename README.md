@@ -71,7 +71,6 @@ Dependencies
 - [Python 3][python]
 - [Click][click]
 - [dmenu][]
-- [xclip][]
 - [YubiKey Manager Python library][ykman], version 0.5.0 or later.
 
 Optional dependencies:
@@ -79,8 +78,9 @@ Optional dependencies:
 - [libnotify][]: For the `--notify` option, which uses `notify-send`
 - [pinentry][]: To prompt for the YubiKey OATH password when needed
 - [xdotool][]: For the `--type` option under X11
-- [wl-clipboard][]: Can be used for the `--clipboard-cmd` option
 - [wtype][]: For the `--type` option under Wayland (`xdotool` might also work)
+- A clipboard tool: For the `--clipboard` option, for example [xclip][] or
+  [wl-clipboard][]
 
 
 Installation
