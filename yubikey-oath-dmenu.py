@@ -52,7 +52,7 @@ def notify_err(*args, **kwargs):
 
 
 def touch_callback(ctx):
-    click.echo('Please touch your YubiKey...')
+    print('Please touch your YubiKey...', file=sys.stderr)
     notify_raw(ctx, 'Please touch your YubiKey...')
 
 def enter_password_if_needed(oath_controller, pinentry_program, retries=3):
@@ -140,6 +140,18 @@ def cli(ctx, clipboard, clipboard_cmd, dmenu_prompt, notify_enable, no_hidden, p
     global notify_enabled
     notify_enabled = notify_enable
 
+    def message(*args, console=True, notification=True):
+        if console:
+            print(*args, file=sys.stderr)
+        if notification:
+            notify(*args)
+
+    def err_message(*args, console=True, notification=True):
+        if console:
+            print(*args, file=sys.stderr)
+        if notification:
+            notify_err(*args)
+
     typeit_cmd = None
     if typeit:
         if shutil.which('wtype'):
@@ -147,7 +159,7 @@ def cli(ctx, clipboard, clipboard_cmd, dmenu_prompt, notify_enable, no_hidden, p
         elif shutil.which('xdotool'):
             typeit_cmd = ['xdotool', 'type']
         else:
-            click.echo('Error: wtype or xdotool binary not found', err=True)
+            err_message('Error: wtype or xdotool binary not found')
             sys.exit(1)
 
     controllers = {i: ykman.oath.OathController(driver)
@@ -158,8 +170,8 @@ def cli(ctx, clipboard, clipboard_cmd, dmenu_prompt, notify_enable, no_hidden, p
     for k, ctrl in controllers.items():
         if not enter_password_if_needed(ctrl, pinentry_program):
             msg = 'Password authentication failed'
-            notify_err(msg)
-            ctx.fail(msg)
+            err_message(msg)
+            sys.exit(1)
 
     credentials = {
         k: {cred.printable_key: cred
@@ -175,10 +187,9 @@ def cli(ctx, clipboard, clipboard_cmd, dmenu_prompt, notify_enable, no_hidden, p
 
     if len(credential_ids) != len(set(credential_ids)):
         dups = [id for id in credential_ids if credential_ids.count(id) > 1]
-        msg = ('Error: Credential ID present on multiple YubiKeys:\n'
-               + '\n'.join(set(dups)))
-        notify_err(msg)
-        ctx.fail(msg)
+        err_message('Error: Credential ID present on multiple YubiKeys:\n'
+                    + '\n'.join(set(dups)))
+        sys.exit(1)
 
     credential_id_to_controller_idx = {
         cred_id: k
@@ -217,12 +228,10 @@ def cli(ctx, clipboard, clipboard_cmd, dmenu_prompt, notify_enable, no_hidden, p
                 encoding='utf-8'
             )
             clip_proc.communicate(code)
-            msg = 'OTP copied to clipboard: %s' % selected_cred_id
-            click.echo(msg)
-            notify(msg)
+            message('OTP copied to clipboard: %s' % selected_cred_id)
 
     else:
-        click.echo('Aborted by user.')
+        message('Aborted by user.', notification=False)
 
 
 if __name__ == '__main__':
