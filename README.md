@@ -4,7 +4,7 @@ yubikey-oath-dmenu
 [dmenu][] interface for getting OATH codes from a [YubiKey][]
 
 This program lets you pick an OATH credential from your YubiKey using [dmenu][],
-and copies the corresponding OTP to the clipboard using [xclip][].
+and copies the corresponding OTP to the clipboard.
 Alternatively, it can "type" the OTP using [xdotool][] on X11 or [wtype][]
 on Wayland.
 
@@ -28,6 +28,7 @@ in [i3wm][] like this:
 
     # Grab OTPs from ykman oath
     bindsym $mod+o exec yubikey-oath-dmenu --notify --clipboard clipboard
+    bindsym $mod+o exec yubikey-oath-dmenu --notify --clipboard-cmd "wl-copy --paste-once"
     bindsym $mod+Shift+o exec yubikey-oath-dmenu --notify --type -p "Credential to type:"
 
 
@@ -45,6 +46,7 @@ Optional dependencies:
 - [libnotify][]: For the `--notify` option, which uses `notify-send`
 - [pinentry][]: To prompt for the YubiKey OATH password when needed
 - [xdotool][]: For the `--type` option under X11
+- [wl-clipboard][]: Can be used for the `--clipboard-cmd` option
 - [wtype][]: For the `--type` option under Wayland (`xdotool` might also work)
 
 
@@ -79,6 +81,7 @@ Installation
 [libnotify]: https://developer.gnome.org/libnotify/
 [pinentry]: https://www.gnupg.org/related_software/pinentry/index.html
 [python]: https://www.python.org/
+[wl-clipboard]: https://github.com/bugaevc/wl-clipboard
 [wtype]: https://github.com/atx/wtype
 [xclip]: https://linux.die.net/man/1/xclip
 [xdotool]: http://www.semicomplete.com/projects/xdotool/

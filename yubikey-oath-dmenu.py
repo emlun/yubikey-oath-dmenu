@@ -18,6 +18,7 @@
 import click
 import re
 import shutil
+import shlex
 import subprocess
 import sys
 import ykman.driver_ccid
@@ -113,7 +114,9 @@ def verify_password(oath_controller, password):
 @click.command(context_settings=dict(ignore_unknown_options=True))
 @click.pass_context
 @click.option('--clipboard', metavar='CLIPBOARD',
-              help='Passed through as -selection option to xclip')
+              help='Passed through as -selection option to xclip; ignored if --clipboard-cmd is given')
+@click.option('--clipboard-cmd', metavar='CLIPBOARD_CMD',
+              help='Copy-to-clipboard command to use instead of xclip')
 @click.option('--dmenu-prompt', 'dmenu_prompt', metavar='PROMPT', default = 'Credentials:',
               help='Passed as -p argument to dmenu')
 @click.help_option('-h', '--help')
@@ -127,10 +130,10 @@ def verify_password(oath_controller, password):
               help='Type code instead of copying to clipboard')
 @click.argument('dmenu_args', nargs=-1, type=click.UNPROCESSED)
 @click.version_option(version=VERSION)
-def cli(ctx, clipboard, dmenu_prompt, notify_enable, no_hidden, pinentry_program, typeit, dmenu_args):
+def cli(ctx, clipboard, clipboard_cmd, dmenu_prompt, notify_enable, no_hidden, pinentry_program, typeit, dmenu_args):
     '''
     Select an OATH credential on your YubiKey using dmenu, then copy the
-    corresponding OTP to the clipboard using xclip.
+    corresponding OTP to the clipboard.
 
     Unknown options and arguments are passed through to dmenu.
     '''
@@ -205,12 +208,15 @@ def cli(ctx, clipboard, dmenu_prompt, notify_enable, no_hidden, pinentry_program
         if typeit_cmd:
             subprocess.run(typeit_cmd + [code])
         else:
-            xclip_proc = subprocess.Popen(
-                ['xclip', '-selection', clipboard] if clipboard else ['xclip'],
+            clip_cmd = shlex.split('xclip' if clipboard_cmd is None else clipboard_cmd)
+            if clipboard_cmd is None and clipboard is not None:
+                clip_cmd += ['-selection', clipboard]
+            clip_proc = subprocess.Popen(
+                clip_cmd,
                 stdin=subprocess.PIPE,
                 encoding='utf-8'
             )
-            xclip_proc.communicate(code)
+            clip_proc.communicate(code)
             msg = 'OTP copied to clipboard: %s' % selected_cred_id
             click.echo(msg)
             notify(msg)
