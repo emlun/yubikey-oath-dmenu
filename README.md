@@ -56,7 +56,7 @@ Example invocations:
 
 - Customize `dmenu` options:
   ```
-  yubikey-oath-dmenu --menu-cmd 'dmenu -p "Credential to type:"'
+  yubikey-oath-dmenu --menu-cmd 'dmenu -p "Credential to copy:"'
   ```
 
 
