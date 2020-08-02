@@ -16,9 +16,10 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import click
+import os
 import re
-import shutil
 import shlex
+import shutil
 import subprocess
 import sys
 import ykman.driver_ccid
@@ -163,7 +164,7 @@ def cli(ctx, clipboard, clipboard_cmd, dmenu_prompt, menu_cmd, notify_enable, no
 
     typeit_cmd = None
     if typeit:
-        if shutil.which('wtype'):
+        if "WAYLAND_DISPLAY" in os.environ and shutil.which('wtype'):
             typeit_cmd = ['wtype']
         elif shutil.which('xdotool'):
             typeit_cmd = ['xdotool', 'type']
