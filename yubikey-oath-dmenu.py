@@ -16,7 +16,9 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import click
+import os
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -26,7 +28,7 @@ import ykman.oath
 from threading import Timer
 
 
-VERSION = '0.9.0'
+VERSION = '0.10.0'
 
 notify_enabled = False
 
@@ -46,12 +48,12 @@ def notify(ctx, *args, **kwargs):
     notify_raw(ctx, *args, **kwargs)
 
 
-def notify_err(*args, **kwargs):
-    notify(*args, expire_time=5000, urgency='critical', **kwargs)
+def notify_err(*args):
+    notify(*args, expire_time=5000, urgency='critical')
 
 
 def touch_callback(ctx):
-    click.echo('Please touch your YubiKey...')
+    print('Please touch your YubiKey...', file=sys.stderr)
     notify_raw(ctx, 'Please touch your YubiKey...')
 
 def enter_password_if_needed(oath_controller, pinentry_program, retries=3):
@@ -113,9 +115,16 @@ def verify_password(oath_controller, password):
 @click.command(context_settings=dict(ignore_unknown_options=True))
 @click.pass_context
 @click.option('--clipboard', metavar='CLIPBOARD',
-              help='Passed through as -selection option to xclip')
-@click.option('--dmenu-prompt', 'dmenu_prompt', metavar='PROMPT', default = 'Credentials:',
-              help='Passed as -p argument to dmenu')
+              help='DEPRECATED: Use --clipboard-cmd instead. '
+              'Passed through as -selection option to xclip; ignored if --clipboard-cmd is given')
+@click.option('--clipboard-cmd', metavar='CLIPBOARD_CMD',
+              help='Copy-to-clipboard command to use instead of xclip')
+@click.option('--dmenu-prompt', 'dmenu_prompt', metavar='PROMPT',
+              help='DEPRECATED: Use --menu-cmd instead. '
+              'Passed as -p argument to dmenu.')
+@click.option('--menu-cmd', 'menu_cmd', metavar='MENU_CMD',
+              help='Command used to summon the menu. '
+              '''Default: dmenu -p 'Credentials:' -i''')
 @click.help_option('-h', '--help')
 @click.option('--no-hidden', 'no_hidden', default=False, is_flag=True,
               help='Hide _hidden credentials')
@@ -127,25 +136,56 @@ def verify_password(oath_controller, password):
               help='Type code instead of copying to clipboard')
 @click.argument('dmenu_args', nargs=-1, type=click.UNPROCESSED)
 @click.version_option(version=VERSION)
-def cli(ctx, clipboard, dmenu_prompt, notify_enable, no_hidden, pinentry_program, typeit, dmenu_args):
+def cli(ctx, clipboard, clipboard_cmd, dmenu_prompt, menu_cmd, notify_enable, no_hidden, pinentry_program, typeit, dmenu_args):
     '''
     Select an OATH credential on your YubiKey using dmenu, then copy the
-    corresponding OTP to the clipboard using xclip.
+    corresponding OTP to the clipboard.
 
     Unknown options and arguments are passed through to dmenu.
     '''
     global notify_enabled
     notify_enabled = notify_enable
 
+    def message(*args, console=True, notification=True, **kwargs):
+        if console:
+            print(*args, file=sys.stderr)
+        if notification:
+            notify(*args, **kwargs)
+
+    def err_message(*args, console=True, notification=True):
+        if console:
+            print(*args, file=sys.stderr)
+        if notification:
+            notify_err(*args)
+
+    if clipboard:
+        message('Warning: --clipboard is deprecated and will be removed in the next release, please use --clipboard-cmd instead.',
+                expire_time=10000)
+
     typeit_cmd = None
     if typeit:
-        if shutil.which('wtype'):
+        if "WAYLAND_DISPLAY" in os.environ and shutil.which('wtype'):
             typeit_cmd = ['wtype']
         elif shutil.which('xdotool'):
             typeit_cmd = ['xdotool', 'type']
         else:
-            click.echo('Error: wtype or xdotool binary not found', err=True)
+            err_message('Error: wtype or xdotool binary not found')
             sys.exit(1)
+
+    if dmenu_prompt:
+        message('Warning: --dmenu-prompt is deprecated and will be removed in the next release, please use --menu-cmd instead.',
+                expire_time=10000)
+
+    if dmenu_args:
+        message('Warning: trailing dmenu arguments are deprecated and will be removed in the next release, please use --menu-cmd instead.',
+                expire_time=10000)
+
+    if menu_cmd and (dmenu_args or dmenu_prompt):
+        if dmenu_prompt:
+            err_message('Error: --menu-cmd conflicts with --dmenu-prompt')
+        if dmenu_args:
+            err_message('Error: --menu-cmd conflicts with trailing dmenu arguments')
+        sys.exit(1)
 
     controllers = {i: ykman.oath.OathController(driver)
                    for i, driver in enumerate(
@@ -155,8 +195,8 @@ def cli(ctx, clipboard, dmenu_prompt, notify_enable, no_hidden, pinentry_program
     for k, ctrl in controllers.items():
         if not enter_password_if_needed(ctrl, pinentry_program):
             msg = 'Password authentication failed'
-            notify_err(msg)
-            ctx.fail(msg)
+            err_message(msg)
+            sys.exit(1)
 
     credentials = {
         k: {cred.printable_key: cred
@@ -172,10 +212,9 @@ def cli(ctx, clipboard, dmenu_prompt, notify_enable, no_hidden, pinentry_program
 
     if len(credential_ids) != len(set(credential_ids)):
         dups = [id for id in credential_ids if credential_ids.count(id) > 1]
-        msg = ('Error: Credential ID present on multiple YubiKeys:\n'
-               + '\n'.join(set(dups)))
-        notify_err(msg)
-        ctx.fail(msg)
+        err_message('Error: Credential ID present on multiple YubiKeys:\n'
+                    + '\n'.join(set(dups)))
+        sys.exit(1)
 
     credential_id_to_controller_idx = {
         cred_id: k
@@ -184,7 +223,8 @@ def cli(ctx, clipboard, dmenu_prompt, notify_enable, no_hidden, pinentry_program
     }
 
     dmenu_proc = subprocess.Popen(
-        ['dmenu', '-p', dmenu_prompt, '-i'] + list(dmenu_args),
+        shlex.split(menu_cmd) if menu_cmd
+        else ['dmenu', '-p', dmenu_prompt or 'Credentials:', '-i'] + list(dmenu_args),
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         encoding='utf-8'
@@ -205,18 +245,19 @@ def cli(ctx, clipboard, dmenu_prompt, notify_enable, no_hidden, pinentry_program
         if typeit_cmd:
             subprocess.run(typeit_cmd + [code])
         else:
-            xclip_proc = subprocess.Popen(
-                ['xclip', '-selection', clipboard] if clipboard else ['xclip'],
+            clip_cmd = shlex.split('xclip' if clipboard_cmd is None else clipboard_cmd)
+            if clipboard_cmd is None and clipboard is not None:
+                clip_cmd += ['-selection', clipboard]
+            clip_proc = subprocess.Popen(
+                clip_cmd,
                 stdin=subprocess.PIPE,
                 encoding='utf-8'
             )
-            xclip_proc.communicate(code)
-            msg = 'OTP copied to clipboard: %s' % selected_cred_id
-            click.echo(msg)
-            notify(msg)
+            clip_proc.communicate(code)
+            message('OTP copied to clipboard: %s' % selected_cred_id)
 
     else:
-        click.echo('Aborted by user.')
+        message('Aborted by user.', notification=False)
 
 
 if __name__ == '__main__':
