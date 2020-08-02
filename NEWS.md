@@ -4,6 +4,8 @@
   - Added support for arbitrary menu command via `--menu-cmd`
   - `--dmenu-prompt` option and trailing dmenu arguments deprecated in favour of
     `--menu-cmd`
+  - Fixed bug where `wtype` would be preferred over `xdotool` if installed, even
+    if current environment is X11 and not Wayland - thanks Mark Stosberg!
 
 - Version 0.9.0 - released 2020-07-22
   - If `wtype` is available, it will be preferred over `xdotool` when `--type`
