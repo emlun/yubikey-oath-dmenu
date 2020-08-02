@@ -15,11 +15,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import os
 import click
+import os
 import re
-import shutil
 import shlex
+import shutil
 import subprocess
 import sys
 import ykman.driver_ccid
