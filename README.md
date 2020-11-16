@@ -28,7 +28,7 @@ in [i3wm][] like this:
 
 ```
 # Grab OTPs from ykman oath
-bindsym $mod+o exec yubikey-oath-dmenu --notify
+bindsym $mod+o exec yubikey-oath-dmenu --notify --clipboard
 bindsym $mod+Shift+o exec yubikey-oath-dmenu --notify --type
 ```
 
