@@ -1,6 +1,7 @@
 - Version 0.13.0 (unreleased)
   - Copying to clipboard by default disabled in favour of specifying
     `--clipboard` explicitly
+  - Upgraded ykman dependency from version <4.0.0 to >=4.0.0
 
 - Version 0.12.0 - released 2020-11-15
   - Copying OTP to clipboard and typing it are no longer exclusive

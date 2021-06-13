@@ -71,7 +71,7 @@ Dependencies
 - [Python 3][python]
 - [Click][click]
 - [dmenu][]
-- [YubiKey Manager Python library][ykman], versions between 0.5.0 (inclusive) and 4.0.0 (exclusive).
+- [YubiKey Manager Python library][ykman], version 4.0.0 or later
 
 Optional dependencies:
 
@@ -128,6 +128,7 @@ Contributors
 Big thanks to our contributors:
 
 - [Andrei Gherzan](https://github.com/agherzan)
-- [ign0tus](https://github.com/ign0tus)
 - [Mark Stosberg](https://github.com/markstos)
+- [Martin Stiborský](https://github.com/stibi)
+- [ign0tus](https://github.com/ign0tus)
 - [relatev](https://github.com/relatev)
