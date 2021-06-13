@@ -114,6 +114,10 @@ def verify_password(oath_controller, password):
     oath_controller.validate(key)
 
 
+def format_cred_name(cred: yubikit.oath.Credential) -> str:
+    return (f"{cred.issuer.strip()}: " if cred.issuer else "") + cred.name.strip()
+
+
 @click.command(context_settings=dict(ignore_unknown_options=True))
 @click.pass_context
 @click.option('--clipboard', default=False, is_flag=True,
@@ -197,7 +201,7 @@ def cli(ctx, clipboard, clipboard_cmd, menu_cmd, notify_enable, no_hidden, pinen
             ctx.fail(msg)
 
     credentials = {
-        k: {cred.name: cred
+        k: {format_cred_name(cred): cred
             for cred in ctrl.list_credentials() if not (no_hidden and cred.name.startswith("_hidden"))
             }
         for k, ctrl in controllers.items()
