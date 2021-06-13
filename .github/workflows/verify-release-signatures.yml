@@ -1,0 +1,32 @@
+name: Verify release signatures
+
+on:
+  release:
+    types: [published, created, edited, prereleased]
+
+jobs:
+  verify:
+    name: Verify signatures
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v1
+
+    - name: Build release archive
+      run: make archive VERSION=${GITHUB_REF#refs/tags/v}
+
+    - name: Fetch keys
+      run: gpg --no-default-keyring --keyring emil --keyserver hkps://keys.openpgp.org --recv-keys EB8627616EC1971DF076F2FF2BF5FD22FCABDE73
+
+    - name: Verify signatures from GitHub release
+      run: |
+        export TAGNAME=${GITHUB_REF#refs/tags/}
+        export VERSION=${GITHUB_REF#refs/tags/v}
+
+        wget https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAGNAME}/yubikey-oath-dmenu-${VERSION}.py.sig
+        wget https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAGNAME}/yubikey-oath-dmenu-${VERSION}.tar.gz.sig
+
+        gpg --no-default-keyring --keyring emil --verify yubikey-oath-dmenu-${VERSION}.py.sig
+        gpg --no-default-keyring --keyring emil --verify yubikey-oath-dmenu-${VERSION}.tar.gz.sig
