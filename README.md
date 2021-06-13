@@ -128,6 +128,7 @@ Contributors
 Big thanks to our contributors:
 
 - [Andrei Gherzan](https://github.com/agherzan)
-- [ign0tus](https://github.com/ign0tus)
 - [Mark Stosberg](https://github.com/markstos)
+- [Martin Stiborský](https://github.com/stibi)
+- [ign0tus](https://github.com/ign0tus)
 - [relatev](https://github.com/relatev)
