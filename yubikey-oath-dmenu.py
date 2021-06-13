@@ -23,11 +23,13 @@ import shutil
 import subprocess
 import sys
 import ykman.pcsc
-import yubikit.oath
-import yubikit.core.smartcard
 
 from threading import Timer
+from yubikit.core.smartcard import ApduError
 from yubikit.core.smartcard import SW
+from yubikit.core.smartcard import SmartCardConnection
+from yubikit.oath import Credential
+from yubikit.oath import OathSession
 
 
 VERSION = '0.12.0'
@@ -65,7 +67,7 @@ def enter_password_if_needed(oath_controller, pinentry_program, retries=3):
         try:
             oath_controller.list_credentials()
             return True
-        except yubikit.core.smartcard.ApduError as e:
+        except ApduError as e:
             if e.sw == SW.SECURITY_CONDITION_NOT_SATISFIED:
                 try:
                     password = ask_password(pinentry_program)
@@ -75,7 +77,7 @@ def enter_password_if_needed(oath_controller, pinentry_program, retries=3):
                         verify_password(oath_controller, password)
                         return True
 
-                except yubikit.core.smartcard.ApduError as ee:
+                except ApduError as ee:
                     if ee.sw == SW.INCORRECT_PARAMETERS:
                         return enter_password_if_needed(
                             oath_controller,
@@ -114,7 +116,7 @@ def verify_password(oath_controller, password):
     oath_controller.validate(key)
 
 
-def format_cred_name(cred: yubikit.oath.Credential) -> str:
+def format_cred_name(cred: Credential) -> str:
     return (f"{cred.issuer.strip()}: " if cred.issuer else "") + cred.name.strip()
 
 
@@ -189,7 +191,7 @@ def cli(ctx, clipboard, clipboard_cmd, menu_cmd, notify_enable, no_hidden, pinen
             err_message('Error: wl-copy or xclip binary not found')
             sys.exit(1)
 
-    controllers = {i: yubikit.oath.OathSession(driver.open_connection(yubikit.core.smartcard.SmartCardConnection))
+    controllers = {i: OathSession(driver.open_connection(SmartCardConnection))
                    for i, driver in enumerate(
                        ykman.pcsc.list_devices())
                    }
