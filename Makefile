@@ -5,13 +5,43 @@ SCRIPT_SRC_FILENAME=yubikey-oath-dmenu.py
 SCRIPT_INSTALL_FILENAME=yubikey-oath-dmenu
 SCRIPT_INSTALL_FULL_PATH=$(BINDIR)/$(SCRIPT_INSTALL_FILENAME)
 
+VERSION?=$(shell ./compute-version.sh)
+VERSION_TAG=v$(VERSION)
+PROJECT_NAME=yubikey-oath-dmenu
+SCRIPT_VERSIONED_FILENAME=$(PROJECT_NAME)-$(version).py
+TAR_FILENAME=$(PROJECT_NAME)-$(VERSION).tar.gz
+ARCHIVE_PREFIX=$(PROJECT_NAME)-$(VERSION)/
 
+
+.PHONY: default
 default:
 	@echo "Nothing to do!"
-	@echo 'Use "make install" to install the program to $(BINDIR)'
+	@echo 'Use "make install" to install the program to $(BINDIR) .'
+	@echo 'Use "make archive" to build a source release archive.'
 
+.PHONY: install
 install:
 	install -D -m755 "$(SCRIPT_SRC_FILENAME)" "$(SCRIPT_INSTALL_FULL_PATH)"
 
+.PHONY: uninstall
 uninstall:
 	rm "$(SCRIPT_INSTALL_FULL_PATH)"
+
+
+
+.PHONY: archive
+archive: $(TAR_FILENAME)
+
+.PHONY: release
+release: $(TAR_FILENAME) $(TAR_FILENAME).sig $(SCRIPT_VERSIONED_FILENAME).sig
+	@echo "Successfully built version $(VERSION) release"
+
+$(TAR_FILENAME):
+	git archive --prefix "$(ARCHIVE_PREFIX)" -o "$@" "$(VERSION_TAG)"
+
+$(SCRIPT_VERSIONED_FILENAME): $(SCRIPT_SRC_FILENAME)
+	install -m 644 "$(SCRIPT_SRC_FILENAME)" "$(SCRIPT_VERSIONED_FILENAME)"
+
+%.sig: %
+	gpg --detach-sign "$<"
+	gpg --verify "$@"
