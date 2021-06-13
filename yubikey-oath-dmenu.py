@@ -23,11 +23,11 @@ import shutil
 import subprocess
 import sys
 import ykman.pcsc
-import ykman.oath
 import yubikit.oath
 import yubikit.core.smartcard
 
 from threading import Timer
+from yubikit.core.smartcard import SW
 
 
 VERSION = '0.12.0'
@@ -66,7 +66,7 @@ def enter_password_if_needed(oath_controller, pinentry_program, retries=3):
             oath_controller.list_credentials()
             return True
         except yubikit.core.smartcard.ApduError as e:
-            if e.sw == ykman.oath.SW.SECURITY_CONDITION_NOT_SATISFIED:
+            if e.sw == SW.SECURITY_CONDITION_NOT_SATISFIED:
                 try:
                     password = ask_password(pinentry_program)
                     if password is None:
@@ -76,7 +76,7 @@ def enter_password_if_needed(oath_controller, pinentry_program, retries=3):
                         return True
 
                 except yubikit.core.smartcard.ApduError as ee:
-                    if ee.sw == ykman.oath.SW.INCORRECT_PARAMETERS:
+                    if ee.sw == SW.INCORRECT_PARAMETERS:
                         return enter_password_if_needed(
                             oath_controller,
                             pinentry_program=pinentry_program,
