@@ -22,13 +22,17 @@ import shlex
 import shutil
 import subprocess
 import sys
-import ykman.driver_ccid
-import ykman.oath
+import ykman.pcsc
 
 from threading import Timer
+from yubikit.core.smartcard import ApduError
+from yubikit.core.smartcard import SW
+from yubikit.core.smartcard import SmartCardConnection
+from yubikit.oath import Credential
+from yubikit.oath import OathSession
 
 
-VERSION = '0.12.0'
+VERSION = '0.13.0'
 
 notify_enabled = False
 
@@ -61,10 +65,10 @@ def enter_password_if_needed(oath_controller, pinentry_program, retries=3):
         return False
     else:
         try:
-            oath_controller.list()
+            oath_controller.list_credentials()
             return True
-        except ykman.oath.APDUError as e:
-            if e.sw == ykman.oath.SW.SECURITY_CONDITION_NOT_SATISFIED:
+        except ApduError as e:
+            if e.sw == SW.SECURITY_CONDITION_NOT_SATISFIED:
                 try:
                     password = ask_password(pinentry_program)
                     if password is None:
@@ -73,8 +77,8 @@ def enter_password_if_needed(oath_controller, pinentry_program, retries=3):
                         verify_password(oath_controller, password)
                         return True
 
-                except ykman.oath.APDUError as ee:
-                    if ee.sw == ykman.oath.SW.INCORRECT_PARAMETERS:
+                except ApduError as ee:
+                    if ee.sw == SW.INCORRECT_PARAMETERS:
                         return enter_password_if_needed(
                             oath_controller,
                             pinentry_program=pinentry_program,
@@ -110,6 +114,10 @@ def ask_password(pinentry_program, retries=3):
 def verify_password(oath_controller, password):
     key = oath_controller.derive_key(password)
     oath_controller.validate(key)
+
+
+def format_cred_name(cred: Credential) -> str:
+    return (f"{cred.issuer.strip()}: " if cred.issuer else "") + cred.name.strip()
 
 
 @click.command(context_settings=dict(ignore_unknown_options=True))
@@ -166,11 +174,10 @@ def cli(ctx, clipboard, clipboard_cmd, menu_cmd, notify_enable, no_hidden, pinen
             err_message('Error: wtype or xdotool binary not found')
             sys.exit(1)
 
-    if not clipboard and not (typeit or use_stdout):
-        clipboard = True
-        message('Warning: Copying to clipboard by default is deprecated and will be '
-                'disabled in the next release. Please specify --clipboard explicitly.',
-                expire_time=10000)
+    if not (clipboard or typeit or use_stdout):
+        err_message('No output mode specified. '
+                    'Please specify --clipboard, --type, and/or --stdout.')
+        sys.exit(1)
 
     clip_cmd = None
     if clipboard or clipboard_cmd is not None:
@@ -184,9 +191,9 @@ def cli(ctx, clipboard, clipboard_cmd, menu_cmd, notify_enable, no_hidden, pinen
             err_message('Error: wl-copy or xclip binary not found')
             sys.exit(1)
 
-    controllers = {i: ykman.oath.OathController(driver)
+    controllers = {i: OathSession(driver.open_connection(SmartCardConnection))
                    for i, driver in enumerate(
-                       ykman.driver_ccid.open_devices())
+                       ykman.pcsc.list_devices())
                    }
 
     for k, ctrl in controllers.items():
@@ -196,8 +203,8 @@ def cli(ctx, clipboard, clipboard_cmd, menu_cmd, notify_enable, no_hidden, pinen
             ctx.fail(msg)
 
     credentials = {
-        k: {cred.printable_key: cred
-            for cred in ctrl.list() if not (no_hidden and cred.printable_key.startswith("_hidden"))
+        k: {format_cred_name(cred): cred
+            for cred in ctrl.list_credentials() if not (no_hidden and cred.name.startswith("_hidden"))
             }
         for k, ctrl in controllers.items()
     }
@@ -235,7 +242,7 @@ def cli(ctx, clipboard, clipboard_cmd, menu_cmd, notify_enable, no_hidden, pinen
 
         touch_timer = Timer(0.500, touch_callback, [ctx])
         touch_timer.start()
-        code = ctrl.calculate(credentials[ctrl_idx][selected_cred_id]).value
+        code = ctrl.calculate_code(credentials[ctrl_idx][selected_cred_id]).value
         touch_timer.cancel()
 
         if typeit_cmd:

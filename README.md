@@ -28,7 +28,7 @@ in [i3wm][] like this:
 
 ```
 # Grab OTPs from ykman oath
-bindsym $mod+o exec yubikey-oath-dmenu --notify
+bindsym $mod+o exec yubikey-oath-dmenu --notify --clipboard
 bindsym $mod+Shift+o exec yubikey-oath-dmenu --notify --type
 ```
 
@@ -71,16 +71,16 @@ Dependencies
 - [Python 3][python]
 - [Click][click]
 - [dmenu][]
-- [xclip][]
-- [YubiKey Manager Python library][ykman], version 0.5.0 or later.
+- [YubiKey Manager Python library][ykman], version 4.0.0 or later
 
 Optional dependencies:
 
 - [libnotify][]: For the `--notify` option, which uses `notify-send`
 - [pinentry][]: To prompt for the YubiKey OATH password when needed
 - [xdotool][]: For the `--type` option under X11
-- [wl-clipboard][]: Can be used for the `--clipboard-cmd` option
 - [wtype][]: For the `--type` option under Wayland (`xdotool` might also work)
+- A clipboard tool: For the `--clipboard` option, for example [xclip][] or
+  [wl-clipboard][]
 
 
 Installation
@@ -128,6 +128,7 @@ Contributors
 Big thanks to our contributors:
 
 - [Andrei Gherzan](https://github.com/agherzan)
-- [ign0tus](https://github.com/ign0tus)
 - [Mark Stosberg](https://github.com/markstos)
+- [Martin Stiborský](https://github.com/stibi)
+- [ign0tus](https://github.com/ign0tus)
 - [relatev](https://github.com/relatev)
