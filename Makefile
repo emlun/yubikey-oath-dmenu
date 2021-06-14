@@ -30,6 +30,9 @@ uninstall:
 	rm "$(SCRIPT_INSTALL_FULL_PATH)"
 
 
+.PHONY: clean
+clean:
+	rm -rf "$(DIST_DIR)"
 
 .PHONY: archive
 archive: $(TAR_FILENAME)
