@@ -33,14 +33,19 @@ uninstall:
 .PHONY: archive
 archive: $(TAR_FILENAME)
 
+.PHONY: set-version
+set-version: $(SCRIPT_SRC_FILENAME)
+	sed -i "s/^VERSION\s*=\s*'.*'/VERSION = '$(VERSION)'/" "$(SCRIPT_SRC_FILENAME)"
+	git diff --exit-code
+
 .PHONY: release
-release: $(TAR_FILENAME) $(TAR_FILENAME).sig $(SCRIPT_VERSIONED_FILENAME).sig
+release: set-version $(TAR_FILENAME) $(TAR_FILENAME).sig $(SCRIPT_VERSIONED_FILENAME).sig
 	@echo "Successfully built version $(VERSION) release"
 
 $(TAR_FILENAME):
 	git archive --prefix "$(ARCHIVE_PREFIX)" -o "$@" "$(VERSION_TAG)"
 
-$(SCRIPT_VERSIONED_FILENAME): $(SCRIPT_SRC_FILENAME)
+$(SCRIPT_VERSIONED_FILENAME): set-version $(SCRIPT_SRC_FILENAME)
 	install -m 644 "$(SCRIPT_SRC_FILENAME)" "$(SCRIPT_VERSIONED_FILENAME)"
 
 %.sig: %
