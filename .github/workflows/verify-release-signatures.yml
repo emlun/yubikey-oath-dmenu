@@ -28,5 +28,5 @@ jobs:
         wget https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAGNAME}/yubikey-oath-dmenu-${VERSION}.py.sig
         wget https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAGNAME}/yubikey-oath-dmenu-${VERSION}.tar.gz.sig
 
-        gpg --no-default-keyring --keyring emil --verify yubikey-oath-dmenu-${VERSION}.py.sig dist/yubikey-oath-dmenu-${VERSION}.py
+        gpg --no-default-keyring --keyring emil --verify yubikey-oath-dmenu-${VERSION}.py.sig yubikey-oath-dmenu.py
         gpg --no-default-keyring --keyring emil --verify yubikey-oath-dmenu-${VERSION}.tar.gz.sig dist/yubikey-oath-dmenu-${VERSION}.tar.gz
