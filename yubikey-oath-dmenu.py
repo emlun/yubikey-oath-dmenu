@@ -196,6 +196,10 @@ def cli(ctx, clipboard, clipboard_cmd, menu_cmd, notify_enable, no_hidden, pinen
                        ykman.pcsc.list_devices())
                    }
 
+    if len(controllers) == 0:
+        err_message('Error: No YubiKey found')
+        sys.exit(1)
+
     for k, ctrl in controllers.items():
         if not enter_password_if_needed(ctrl, pinentry_program):
             msg = 'Password authentication failed'
@@ -213,6 +217,10 @@ def cli(ctx, clipboard, clipboard_cmd, menu_cmd, notify_enable, no_hidden, pinen
                       for creds in credentials.values()
                       for cred_id in creds.keys()
                       ]
+
+    if len(credential_ids) == 0:
+        err_message('Error: No credentials found on any YubiKey')
+        sys.exit(1)
 
     if len(credential_ids) != len(set(credential_ids)):
         dups = [id for id in credential_ids if credential_ids.count(id) > 1]
