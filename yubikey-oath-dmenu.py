@@ -25,6 +25,7 @@ import sys
 import ykman.pcsc
 
 from threading import Timer
+from ykman.oath import calculate_steam, is_steam
 from yubikit.core.smartcard import ApduError
 from yubikit.core.smartcard import SW
 from yubikit.core.smartcard import SmartCardConnection
@@ -242,7 +243,11 @@ def cli(ctx, clipboard, clipboard_cmd, menu_cmd, notify_enable, no_hidden, pinen
 
         touch_timer = Timer(0.500, touch_callback, [ctx])
         touch_timer.start()
-        code = ctrl.calculate_code(credentials[ctrl_idx][selected_cred_id]).value
+        credential = credentials[ctrl_idx][selected_cred_id]
+        if is_steam(credential):
+            code = calculate_steam(ctrl, credential)
+        else:
+            code = ctrl.calculate_code(credential).value
         touch_timer.cancel()
 
         if typeit_cmd:

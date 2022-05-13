@@ -1,3 +1,7 @@
+- Version 0.14.0 - released 2022-05-13
+  - Steam credentials now supported in the same way as in Yubico Authenticator
+    and `ykman` CLI
+
 - Version 0.13.0 - released 2021-06-13
   - Copying to clipboard by default disabled in favour of specifying
     `--clipboard` explicitly
