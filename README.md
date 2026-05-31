@@ -87,11 +87,17 @@ Installation
 ---
 
 - **Arch Linux**: [AUR package][aur]
-- **pipx**: If you're using `pipx` you can proceed as usual:
-  ```bash
-  pipx install git+https://github.com/emlun/yubikey-oath-dmenu.git
-  ```
-  This may require installing *libpcsclite-dev* and *swig* as system packages beforehand.
+- **Other Linux distros**. This can be installed the `uv` or `pipx` package managers for Python. This requires installing system packages beforehand: *python3.14*, *libpcsclite-dev* and *swig*. Other Python versions may work.
+
+  - **uv example**:
+    ```bash
+    uv tool install git+https://github.com/emlun/yubikey-oath-dmenu.git
+    ```
+  - **pipx example**:
+    ```bash
+    pipx install git+https://github.com/emlun/yubikey-oath-dmenu.git
+    ```
+
 - **Others**: Place `yubikey_oath_dmenu.py` with executable mode somewhere on
   your `$PATH`. `/usr/local/bin/` probably works, for example. The included
   Makefile provides targets for this:
